@@ -16,7 +16,8 @@ const types = {
 http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const decoded = decodeURIComponent(url.pathname);
-  const filePath = path.resolve(path.join(root, decoded));
+  const localPath = decoded.startsWith("/local/") ? `/www/${decoded.slice(7)}` : decoded;
+  const filePath = path.resolve(path.join(root, localPath));
 
   if (!filePath.startsWith(root)) {
     res.writeHead(403);

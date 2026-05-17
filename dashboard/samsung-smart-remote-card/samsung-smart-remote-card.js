@@ -376,10 +376,10 @@ const SAMSUNG_S90F_REMOTE_GROUPS = [
 ];
 
 const QUICK_APP_BUTTONS = [
-  ["KEY_HOME", "Home", "mdi:home"],
-  ["KEY_SOURCE", "Source", "mdi:import"],
-  ["KEY_GUIDE", "Guide", "mdi:television-guide"],
-  ["KEY_INFO", "Info", "mdi:information-outline"],
+  ["KEY_HOME", "Home", "miku:home"],
+  ["KEY_SOURCE", "Source", "miku:import"],
+  ["KEY_GUIDE", "Guide", "miku:television-guide"],
+  ["KEY_INFO", "Info", "miku:information-outline"],
 ];
 
 const SERVICE_SEQUENCES = [
@@ -535,7 +535,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
   renderTopCluster() {
     return `
       <section class="top-cluster">
-        ${this.renderIconButton("KEY_POWER", "Power", "mdi:power", "round power")}
+        ${this.renderIconButton("KEY_POWER", "Power", "miku:power", "round power")}
         <div class="quick-grid">
           ${QUICK_APP_BUTTONS.map(([key, label, icon]) => this.renderIconButton(key, label, icon, "quick")).join("")}
         </div>
@@ -546,16 +546,16 @@ class SamsungSmartRemoteCard extends HTMLElement {
   renderNavigationCluster() {
     return `
       <section class="nav-cluster">
-        ${this.renderKey("KEY_UP", "Up", "nav up", "mdi:chevron-up")}
-        ${this.renderKey("KEY_LEFT", "Left", "nav left", "mdi:chevron-left")}
+        ${this.renderKey("KEY_UP", "Up", "nav up", "miku:chevron-up")}
+        ${this.renderKey("KEY_LEFT", "Left", "nav left", "miku:chevron-left")}
         ${this.renderKey("KEY_ENTER", "OK", "nav ok")}
-        ${this.renderKey("KEY_RIGHT", "Right", "nav right", "mdi:chevron-right")}
-        ${this.renderKey("KEY_DOWN", "Down", "nav down", "mdi:chevron-down")}
+        ${this.renderKey("KEY_RIGHT", "Right", "nav right", "miku:chevron-right")}
+        ${this.renderKey("KEY_DOWN", "Down", "nav down", "miku:chevron-down")}
       </section>
       <section class="back-row">
-        ${this.renderIconButton("KEY_RETURN", "Back", "mdi:keyboard-return", "pill")}
-        ${this.renderIconButton("KEY_HOME", "Home", "mdi:home-outline", "pill accent")}
-        ${this.renderIconButton("KEY_EXIT", "Exit", "mdi:exit-to-app", "pill")}
+        ${this.renderIconButton("KEY_RETURN", "Back", "miku:keyboard-return", "pill")}
+        ${this.renderIconButton("KEY_HOME", "Home", "miku:home-outline", "pill accent")}
+        ${this.renderIconButton("KEY_EXIT", "Exit", "miku:exit-to-app", "pill")}
       </section>
     `;
   }
@@ -564,15 +564,15 @@ class SamsungSmartRemoteCard extends HTMLElement {
     return `
       <section class="rocker-grid">
         <div class="rocker volume">
-          ${this.renderKey("KEY_VOLUP", "Volume Up", "rocker-btn", "mdi:plus", true)}
+          ${this.renderKey("KEY_VOLUP", "Volume Up", "rocker-btn", "miku:plus", true)}
           <div class="rocker-label">VOL</div>
-          ${this.renderKey("KEY_VOLDOWN", "Volume Down", "rocker-btn", "mdi:minus", true)}
+          ${this.renderKey("KEY_VOLDOWN", "Volume Down", "rocker-btn", "miku:minus", true)}
         </div>
-        ${this.renderIconButton("KEY_MUTE", "Mute", "mdi:volume-off", "mute")}
+        ${this.renderIconButton("KEY_MUTE", "Mute", "miku:volume-off", "mute")}
         <div class="rocker channel">
-          ${this.renderKey("KEY_CHUP", "Channel Up", "rocker-btn", "mdi:chevron-up", true)}
+          ${this.renderKey("KEY_CHUP", "Channel Up", "rocker-btn", "miku:chevron-up", true)}
           <div class="rocker-label">CH</div>
-          ${this.renderKey("KEY_CHDOWN", "Channel Down", "rocker-btn", "mdi:chevron-down", true)}
+          ${this.renderKey("KEY_CHDOWN", "Channel Down", "rocker-btn", "miku:chevron-down", true)}
         </div>
       </section>
     `;
@@ -582,7 +582,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
     return `
       <button class="keypad-toggle" data-toggle-keypad aria-expanded="${this._keypadVisible ? "true" : "false"}" aria-label="${this._keypadVisible ? "Hide keypad" : "Show keypad"}">
         <span>${this._keypadVisible ? "Hide keypad" : "Show keypad"}</span>
-        <ha-icon icon="${this._keypadVisible ? "mdi:chevron-up" : "mdi:dialpad"}"></ha-icon>
+        <ha-icon icon="${this._keypadVisible ? "miku:chevron-up" : "miku:dialpad"}"></ha-icon>
       </button>
     `;
   }
@@ -603,12 +603,12 @@ class SamsungSmartRemoteCard extends HTMLElement {
   renderMediaCluster() {
     return `
       <section class="media-grid">
-        ${this.renderIconButton("KEY_REWIND", "Rewind", "mdi:rewind", "media", true)}
-        ${this.renderIconButton("KEY_PLAY", "Play", "mdi:play", "media play")}
-        ${this.renderIconButton("KEY_PAUSE", "Pause", "mdi:pause", "media")}
-        ${this.renderIconButton("KEY_FF", "Fast Forward", "mdi:fast-forward", "media", true)}
-        ${this.renderIconButton("KEY_STOP", "Stop", "mdi:stop", "media")}
-        ${this.renderIconButton("KEY_REC", "Record", "mdi:record-rec", "media rec")}
+        ${this.renderIconButton("KEY_REWIND", "Rewind", "miku:rewind", "media", true)}
+        ${this.renderIconButton("KEY_PLAY", "Play", "miku:play", "media play")}
+        ${this.renderIconButton("KEY_PAUSE", "Pause", "miku:pause", "media")}
+        ${this.renderIconButton("KEY_FF", "Fast Forward", "miku:fast-forward", "media", true)}
+        ${this.renderIconButton("KEY_STOP", "Stop", "miku:stop", "media")}
+        ${this.renderIconButton("KEY_REC", "Record", "miku:record-rec", "media rec")}
       </section>
       <section class="color-row">
         ${this.renderColorKey("KEY_RED", "Red", "#e53935")}
@@ -623,7 +623,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
     return `
       <section class="service-panel">
         <div class="service-title">
-          <ha-icon icon="mdi:tools"></ha-icon>
+          <ha-icon icon="miku:tools"></ha-icon>
           Service
         </div>
         <div class="service-grid">
@@ -640,7 +640,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
       <details class="all-keys" ${this._allKeysOpen ? "open" : ""}>
         <summary>
           <span>All Samsung key codes</span>
-          <ha-icon icon="mdi:chevron-down"></ha-icon>
+          <ha-icon icon="miku:chevron-down"></ha-icon>
         </summary>
         <div class="group-stack">
           ${SAMSUNG_S90F_REMOTE_GROUPS.map((group) => `

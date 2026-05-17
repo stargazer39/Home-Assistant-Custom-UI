@@ -27,7 +27,7 @@ charging_entity: binary_sensor.phone_is_charging
 | --- | --- | --- | --- |
 | `entity` | Yes |  | Battery level sensor. |
 | `name` | No | `Battery` | Card title. |
-| `icon` | No | `mdi:battery` | Header icon. |
+| `icon` | No | `miku:battery` | Header icon. |
 | `show_icon` | No | `true` | Show the icon inside the bar. |
 | `show_percentage` | No | `true` | Show percentage text inside the bar. |
 | `height` | No | `54` | Bar height in pixels. |

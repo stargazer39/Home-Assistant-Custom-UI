@@ -50,9 +50,18 @@ Hatsune Miku:
   miku-active-card-shadow: "0 14px 34px rgba(255, 95, 210, 0.36), 0 0 22px rgba(255, 95, 210, 0.28)"
 
   # Controls
-  paper-item-icon-color: "#7ffcff"
+  # Pixel icon pack
+  # Add this globally in configuration.yaml under frontend.extra_module_url.
+  # Lovelace resources load too late for Home Assistant shell areas like the sidebar.
+  # Then use icons with the miku: prefix, for example miku:home, miku:lightbulb, or miku:battery.
+  miku-iconset-resource: "/local/hatsune-miku-icons/hatsune-miku-iconset.js"
+  miku-icon-prefix: "miku"
+  miku-icon-preview: "/local/hatsune-miku-icons/all-material-icons/preview.html"
+  miku-pixel-icon-color: "#00e5d4"
+  miku-pixel-icon-active-color: "#ff5fd2"
+  paper-item-icon-color: "#00e5d4"
   paper-item-icon-active-color: "#ff5fd2"
-  paper-item-icon_-_color: "#7ffcff"
+  paper-item-icon_-_color: "#00e5d4"
   paper-slider-knob-color: "#ff5fd2"
   paper-slider-knob-start-color: "#ff5fd2"
   paper-slider-pin-color: "#ff5fd2"
@@ -99,7 +108,7 @@ Hatsune Miku:
   mdc-text-field-hover-line-color: "#00d7d7"
   mdc-text-field-focused-label-color: "#00d7d7"
   mdc-menu-surface-fill-color: "#102638"
-  mdc-list-item-graphic-ink-color: "#7ffcff"
+  mdc-list-item-graphic-ink-color: "#00e5d4"
   mdc-list-item-meta-ink-color: "#a9dbe5"
   mdc-list-item-primary-text-color: "#eefbff"
   mdc-list-item-secondary-text-color: "#a9dbe5"
@@ -129,7 +138,7 @@ Hatsune Miku:
   md-menu-item-supporting-text-color: "#a9dbe5"
 
   # State colors
-  state-icon-color: "#8fb9c5"
+  state-icon-color: "#00e5d4"
   state-icon-active-color: "#ff5fd2"
   state-icon-unavailable-color: "#4b6670"
   state-active-color: "#ff5fd2"
@@ -193,7 +202,7 @@ Hatsune Miku:
   rgb-state-binary_sensor-active-color: "255, 95, 210"
   mini-media-player-accent-color: "#ff5fd2"
   mini-media-player-base-color: "#102638"
-  mini-media-player-icon-color: "#7ffcff"
+  mini-media-player-icon-color: "#00e5d4"
 
   modes:
     dark:

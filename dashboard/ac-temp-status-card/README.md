@@ -32,7 +32,7 @@ grid_options:
 | `entity` | Yes |  | Temperature number entity. |
 | `power_entity` | No | `sensor.energy_monitor_load_power` | Power sensor used to detect whether the A/C is running. |
 | `name` | No | `A/C Temp` | Card title. |
-| `icon` | No | `mdi:thermometer` | Icon shown on the right. |
+| `icon` | No | `miku:thermometer` | Icon shown on the right. |
 | `show_status` | No | `false` | Show `A/C is On` or `A/C is Off` inside the card. |
 | `power_threshold` | No | `10` | A/C is on when `power_entity` is greater than this value. |
 | `on_label` | No | `A/C is On` | Status text shown when on. |

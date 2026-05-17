@@ -13,7 +13,7 @@ class BatteryBarCard extends HTMLElement {
 
     this.config = {
       name: "Battery",
-      icon: "mdi:battery",
+      icon: "miku:battery",
       show_icon: true,
       show_percentage: true,
       height: 54,
