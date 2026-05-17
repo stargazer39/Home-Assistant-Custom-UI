@@ -882,15 +882,16 @@ class SamsungSmartRemoteCard extends HTMLElement {
             ". up ."
             "left ok right"
             ". down .";
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 10px;
-          margin: 2px auto 0;
-          max-width: 250px;
+          grid-template-columns: repeat(3, minmax(74px, 1fr));
+          gap: 14px;
+          margin: 6px auto 2px;
+          max-width: 360px;
+          width: min(100%, 360px);
         }
 
         .nav {
           background: linear-gradient(180deg, #4b5058, #2b3038);
-          min-height: 54px;
+          min-height: 70px;
         }
 
         .nav.up { grid-area: up; }
@@ -900,9 +901,9 @@ class SamsungSmartRemoteCard extends HTMLElement {
 
         .nav.ok {
           background: linear-gradient(180deg, var(--primary-color, #03a9f4), #106b91);
-          font-size: 16px;
+          font-size: 20px;
           grid-area: ok;
-          min-height: 68px;
+          min-height: 86px;
         }
 
         .back-row {
@@ -1210,6 +1211,22 @@ class SamsungSmartRemoteCard extends HTMLElement {
           .remote-face {
             border-radius: 30px;
             padding: 14px 12px 18px;
+          }
+
+          .nav-cluster {
+            gap: 10px;
+            grid-template-columns: repeat(3, minmax(58px, 1fr));
+            max-width: 292px;
+            width: 100%;
+          }
+
+          .nav {
+            min-height: 58px;
+          }
+
+          .nav.ok {
+            font-size: 17px;
+            min-height: 72px;
           }
 
           .quick-grid,
