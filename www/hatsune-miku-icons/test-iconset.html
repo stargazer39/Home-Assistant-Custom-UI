@@ -10,6 +10,7 @@
   <ha-icon icon="mdi:cog"></ha-icon>
   <ha-svg-icon></ha-svg-icon>
   <ha-svg-icon-normal></ha-svg-icon-normal>
+  <ha-svg-icon-toggle></ha-svg-icon-toggle>
   <script src="/www/hatsune-miku-icons/hatsune-miku-iconset.js"></script>
   <script>
     customElements.define("ha-svg-icon", class extends HTMLElement {
@@ -32,6 +33,25 @@
           <svg viewBox="0 0 24 24" width="64" height="64">
             <path class="primary-path" d="M12 2A10 10 0 0 0 2 12A10 10 0 0 0 12 22A10 10 0 0 0 22 12A10 10 0 0 0 12 2M7 10H17V12H7V10M7 14H14V16H7V14Z"></path>
           </svg>`;
+      }
+    });
+  </script>
+  <script>
+    customElements.define("ha-svg-icon-toggle", class extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({ mode: "open" });
+        this.shadowRoot.innerHTML = `
+          <svg viewBox="0 0 24 24" width="64" height="64">
+            <path class="primary-path" d="M6 6H18V18H6V6Z"></path>
+          </svg>`;
+      }
+
+      connectedCallback() {
+        setTimeout(() => {
+          this.style.color = "rgb(255, 95, 210)";
+          this.shadowRoot.querySelector("path").setAttribute("d", "M12 2L22 12L12 22L2 12L12 2Z");
+        }, 1000);
       }
     });
   </script>

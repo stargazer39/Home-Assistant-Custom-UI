@@ -295,11 +295,36 @@
   function colorizeRenderedSvgIcon(element) {
     if (element.localName !== "ha-svg-icon" || !element.shadowRoot) return;
 
-    const path = element.shadowRoot.querySelector("path:not([data-miku-colorized])");
+    const existingGroup = element.shadowRoot.querySelector("g[data-miku-colorized='true']");
+    const path = element.shadowRoot.querySelector("path:not([data-miku-layer])");
     const svg = element.shadowRoot.querySelector("svg");
-    if (!path || !svg) return;
+    if (!path || !svg) {
+      if (existingGroup) {
+        const lastColor = existingGroup.dataset.mikuColor || "";
+        const nextColor = window.getComputedStyle(element).color;
+        if (nextColor && nextColor !== lastColor) {
+          existingGroup.remove();
+          const source = element.shadowRoot.querySelector("path[data-miku-source='true']");
+          if (source) source.removeAttribute("data-miku-colorized");
+          colorizeRenderedSvgIcon(element);
+        }
+      }
+      return;
+    }
 
-    const squares = pathToSquares(path.getAttribute("d") || "");
+    const pathData = path.getAttribute("d") || "";
+    const currentColor = window.getComputedStyle(element).color;
+    if (
+      existingGroup &&
+      existingGroup.dataset.mikuSourcePath === pathData &&
+      existingGroup.dataset.mikuColor === currentColor
+    ) {
+      return;
+    }
+
+    if (existingGroup) existingGroup.remove();
+
+    const squares = pathToSquares(pathData);
     if (squares.length < 4) return;
 
     const sourceSize = squares[0].size || CELL;
@@ -347,7 +372,10 @@
     }
 
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    let base = parseColor(window.getComputedStyle(element).color) || { r: 0, g: 229, b: 212 };
+    group.dataset.mikuColorized = "true";
+    group.dataset.mikuSourcePath = pathData;
+    group.dataset.mikuColor = currentColor;
+    let base = parseColor(currentColor) || { r: 0, g: 229, b: 212 };
     const luminance = base.r * 0.2126 + base.g * 0.7152 + base.b * 0.0722;
     if (luminance < 42) {
       base = { r: 0, g: 229, b: 212 };
@@ -373,11 +401,14 @@
       const layerPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
       layerPath.setAttribute("d", makePath(layer.squares, layer.dx || 0, layer.dy || 0));
       layerPath.setAttribute("fill", layer.fill);
+      layerPath.dataset.mikuLayer = "true";
       group.appendChild(layerPath);
     });
 
+    path.dataset.mikuSource = "true";
     path.dataset.mikuColorized = "true";
-    path.replaceWith(group);
+    path.style.display = "none";
+    path.after(group);
   }
 
   function replaceIcons(root) {
