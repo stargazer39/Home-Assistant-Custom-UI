@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hatsune Miku Material Icons</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0e1417;
+      --bar: #121a1f;
+      --panel: #172127;
+      --panel-2: #10181d;
+      --line: #24373d;
+      --text: #dcfbff;
+      --muted: #91b9bf;
+      --teal: #00e5d4;
+      --teal-2: #6ff7ee;
+      --pink: #f45bd3;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 360px);
+      gap: 18px;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--bar) 94%, transparent);
+      backdrop-filter: blur(12px);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .meta {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    input {
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+      padding: 0 12px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 18%, transparent);
+    }
+
+    main {
+      padding: 18px 20px 28px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+      gap: 10px;
+    }
+
+    .icon {
+      min-width: 0;
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      padding: 14px 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .icon canvas {
+      width: 64px;
+      height: 64px;
+      image-rendering: pixelated;
+    }
+
+    .icon span {
+      width: 100%;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+
+    .sentinel {
+      height: 1px;
+    }
+
+    .empty {
+      display: none;
+      padding: 44px 0;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 700px) {
+      header {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Hatsune Miku Material Icons</h1>
+      <div class="meta"><span id="shown">0</span> shown of <span id="total">0</span> Material Design Icons</div>
+    </div>
+    <input id="search" type="search" placeholder="Search icons, e.g. light, home, battery" autocomplete="off">
+  </header>
+  <main>
+    <section id="grid" class="grid" aria-label="Material Design Icons"></section>
+    <div id="empty" class="empty">No matching icons.</div>
+    <div id="sentinel" class="sentinel"></div>
+  </main>
+
+  <script src="icons-data.js"></script>
+  <script>
+    const icons = window.MIKU_MDI_ICONS || [];
+    const grid = document.getElementById("grid");
+    const search = document.getElementById("search");
+    const shown = document.getElementById("shown");
+    const total = document.getElementById("total");
+    const empty = document.getElementById("empty");
+    const sentinel = document.getElementById("sentinel");
+    const pageSize = 240;
+
+    let filtered = icons;
+    let rendered = 0;
+
+    total.textContent = icons.length.toLocaleString();
+
+    function iconTemplate(icon) {
+      return `
+        <article class="icon" title="${icon.name}">
+          <canvas width="64" height="64" role="img" aria-label="${icon.name}" data-path="${icon.path}"></canvas>
+          <span>${icon.name}</span>
+        </article>`;
+    }
+
+    function drawPixelIcon(canvas) {
+      const ctx = canvas.getContext("2d");
+      const iconPath = new Path2D(canvas.dataset.path);
+      ctx.clearRect(0, 0, 64, 64);
+      ctx.imageSmoothingEnabled = false;
+
+      ctx.save();
+      ctx.scale(1, 1);
+      ctx.restore();
+
+      const grid = 16;
+      const cell = 4;
+      const cells = [];
+
+      for (let y = 0; y < grid; y += 1) {
+        for (let x = 0; x < grid; x += 1) {
+          const sourceX = ((x + 0.5) / grid) * 24;
+          const sourceY = ((y + 0.5) / grid) * 24;
+          if (ctx.isPointInPath(iconPath, sourceX, sourceY)) {
+            cells.push({ x, y });
+          }
+        }
+      }
+
+      if (!cells.length) return;
+
+      const minX = Math.min(...cells.map((cell) => cell.x));
+      const maxX = Math.max(...cells.map((cell) => cell.x));
+      const minY = Math.min(...cells.map((cell) => cell.y));
+      const maxY = Math.max(...cells.map((cell) => cell.y));
+      const width = maxX - minX + 1;
+      const height = maxY - minY + 1;
+      const offsetX = Math.round((grid - width) / 2) - minX;
+      const offsetY = Math.round((grid - height) / 2) - minY;
+      const normalized = cells.map((cell) => ({ x: cell.x + offsetX, y: cell.y + offsetY }));
+      const hasCell = new Set(normalized.map((cell) => `${cell.x},${cell.y}`));
+
+      ctx.fillStyle = "#111820";
+      normalized.forEach((cellItem) => {
+        ctx.fillRect((cellItem.x + 1) * cell, (cellItem.y + 1) * cell, cell, cell);
+      });
+
+      normalized.forEach((cellItem) => {
+        const keyAbove = `${cellItem.x},${cellItem.y - 1}`;
+        const keyLeft = `${cellItem.x - 1},${cellItem.y}`;
+        const topEdge = !hasCell.has(keyAbove);
+        const leftEdge = !hasCell.has(keyLeft);
+        const lower = cellItem.y > grid / 2 + 1;
+
+        ctx.fillStyle = lower ? "#00b8aa" : "#00e5d4";
+        if (topEdge || leftEdge) ctx.fillStyle = "#6ff7ee";
+        if (topEdge && cellItem.y < grid / 2) ctx.fillStyle = "#aafcff";
+        ctx.fillRect(cellItem.x * cell, cellItem.y * cell, cell, cell);
+      });
+
+      const accentY = Math.max(0, Math.min(grid - 2, Math.round(minY + offsetY) - 1));
+      const accentLeft = Math.max(1, Math.round((grid - width) / 2) - 1);
+      const accentRight = Math.min(grid - 2, Math.round((grid + width) / 2));
+      ctx.fillStyle = "#f45bd3";
+      ctx.fillRect(accentLeft * cell, accentY * cell, cell, cell);
+      ctx.fillRect(accentRight * cell, accentY * cell, cell, cell);
+
+      if (height > 7) {
+        ctx.fillStyle = "#00e5d4";
+        ctx.fillRect(Math.max(0, accentLeft - 1) * cell, (accentY + 1) * cell, cell, cell * 2);
+        ctx.fillRect(Math.min(grid - 1, accentRight + 1) * cell, (accentY + 1) * cell, cell, cell * 2);
+      }
+    }
+
+    function renderMore() {
+      const next = filtered.slice(rendered, rendered + pageSize);
+      if (!next.length) return;
+      const html = next.map((icon) => iconTemplate(icon)).join("");
+      grid.insertAdjacentHTML("beforeend", html);
+      grid.querySelectorAll("canvas:not([data-rendered])").forEach((canvas) => {
+        drawPixelIcon(canvas);
+        canvas.dataset.rendered = "true";
+      });
+      rendered += next.length;
+      shown.textContent = filtered.length.toLocaleString();
+    }
+
+    function applyFilter() {
+      const term = search.value.trim().toLowerCase();
+      filtered = term ? icons.filter((icon) => icon.name.includes(term)) : icons;
+      rendered = 0;
+      grid.textContent = "";
+      empty.style.display = filtered.length ? "none" : "block";
+      shown.textContent = filtered.length.toLocaleString();
+      renderMore();
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) renderMore();
+    }, { rootMargin: "700px" });
+
+    observer.observe(sentinel);
+    search.addEventListener("input", applyFilter);
+    applyFilter();
+  </script>
+</body>
+</html>

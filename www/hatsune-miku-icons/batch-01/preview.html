@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hatsune Miku Icons Batch 01</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101418;
+      --panel: #171d23;
+      --line: #24323a;
+      --text: #d9fbff;
+      --muted: #8bb8bd;
+      --teal: #00e5d4;
+      --pink: #f45bd3;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    main {
+      width: min(880px, calc(100vw - 32px));
+      padding: 32px 0;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: 12px;
+    }
+
+    .icon {
+      display: grid;
+      gap: 10px;
+      justify-items: center;
+      padding: 16px 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    img {
+      width: 64px;
+      height: 64px;
+      image-rendering: pixelated;
+    }
+
+    span {
+      width: 100%;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Hatsune Miku Icons Batch 01</h1>
+    <p>First 10 Home Assistant pixel-art icon drafts.</p>
+    <section class="grid">
+      <div class="icon"><img src="home.svg?v=2" alt="Home"><span>home</span></div>
+      <div class="icon"><img src="light.svg?v=2" alt="Light"><span>light</span></div>
+      <div class="icon"><img src="thermostat.svg?v=2" alt="Thermostat"><span>thermostat</span></div>
+      <div class="icon"><img src="media-speaker.svg?v=2" alt="Media speaker"><span>media-speaker</span></div>
+      <div class="icon"><img src="security-camera.svg?v=2" alt="Security camera"><span>security-camera</span></div>
+      <div class="icon"><img src="lock.svg?v=2" alt="Lock"><span>lock</span></div>
+      <div class="icon"><img src="wifi-router.svg?v=2" alt="Wi-Fi router"><span>wifi-router</span></div>
+      <div class="icon"><img src="energy-battery.svg?v=2" alt="Energy battery"><span>energy-battery</span></div>
+      <div class="icon"><img src="fan-ac.svg?v=2" alt="Fan AC"><span>fan-ac</span></div>
+      <div class="icon"><img src="automation-sparkle.svg?v=2" alt="Automation sparkle"><span>automation-sparkle</span></div>
+    </section>
+  </main>
+</body>
+</html>
