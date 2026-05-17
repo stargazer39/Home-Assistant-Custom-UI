@@ -32,7 +32,7 @@ try {
   Add-SftpCommand "-mkdir `"$remoteConfig/www/dashboard`""
 
   Add-SftpCommand "put `"themes/hatsune-miku.yaml`" `"$remoteConfig/themes/hatsune-miku.yaml`""
-  Add-SftpCommand "put `"www/hatsune-miku-background.jpg`" `"$remoteConfig/www/hatsune-miku-background.jpg`""
+  Add-SftpCommand "put `"www/hatsune-miku-background.webp`" `"$remoteConfig/www/hatsune-miku-background.webp`""
   Add-SftpCommand "put -r `"www/hatsune-miku-icons`" `"$remoteConfig/www/`""
   Add-SftpCommand "put -r `"dashboard`" `"$remoteConfig/www/`""
 

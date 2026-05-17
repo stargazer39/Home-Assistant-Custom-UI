@@ -6,8 +6,8 @@ Hatsune Miku:
   light-primary-color: "#7ffcff"
   primary-background-color: "#07131f"
   secondary-background-color: "#0d2030"
-  lovelace-background: "linear-gradient(rgba(7, 19, 31, 0.54), rgba(7, 19, 31, 0.72)), url('/local/hatsune-miku-background.jpg') center / cover no-repeat fixed"
-  ha-view-background: "linear-gradient(rgba(7, 19, 31, 0.54), rgba(7, 19, 31, 0.72)), url('/local/hatsune-miku-background.jpg') center / cover no-repeat fixed"
+  lovelace-background: "linear-gradient(rgba(7, 19, 31, 0.54), rgba(7, 19, 31, 0.72)), url('/local/hatsune-miku-background.webp') center / cover no-repeat fixed"
+  ha-view-background: "linear-gradient(rgba(7, 19, 31, 0.54), rgba(7, 19, 31, 0.72)), url('/local/hatsune-miku-background.webp') center / cover no-repeat fixed"
   lovelace-background-color: "#07131f"
   divider-color: "rgba(127, 252, 255, 0.16)"
 

@@ -78,11 +78,10 @@ lcd "$repo_root"
 -mkdir "$remote_config/themes"
 -mkdir "$remote_config/www"
 -mkdir "$remote_config/www/hatsune-miku-icons"
--mkdir "$remote_config/www/dashboard"
 put "themes/hatsune-miku.yaml" "$remote_config/themes/hatsune-miku.yaml"
-put "www/hatsune-miku-background.jpg" "$remote_config/www/hatsune-miku-background.jpg"
+put "www/hatsune-miku-background.webp" "$remote_config/www/hatsune-miku-background.webp"
 put -r "www/hatsune-miku-icons" "$remote_config/www/"
-put -r "dashboard" "$remote_config/www/"
+put -r "dashboard/*" "$remote_config/www/dashboard/"
 bye
 SFTP
 

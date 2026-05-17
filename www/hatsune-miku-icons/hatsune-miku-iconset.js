@@ -1,5 +1,4 @@
 (function () {
-  const ICONSET_NAME = "miku";
   const ICON_DATA_URLS = [
     "/local/hatsune-miku-icons/all-material-icons/icons-data.js",
     "/www/hatsune-miku-icons/all-material-icons/icons-data.js",
@@ -7,9 +6,12 @@
   const AUTO_COLORIZE_RENDERED_SVG_ICONS = true;
   const GRID = 16;
   const CELL = 1.5;
-  const OFFSET = 0;
   const ICON_TARGET_SIZE = 22.5;
+  
   let iconDataPromise;
+  let observer;
+  let pollInterval;
+  const colorCache = new Map();
 
   function loadIconData() {
     if (window.MIKU_MDI_ICONS) {
@@ -27,16 +29,16 @@
             return;
           }
 
-        const script = document.createElement("script");
+          const script = document.createElement("script");
           script.src = url;
-        script.async = true;
-        script.onload = () => resolve(window.MIKU_MDI_ICONS || []);
+          script.async = true;
+          script.onload = () => resolve(window.MIKU_MDI_ICONS || []);
           script.onerror = () => {
             script.remove();
             index += 1;
             tryLoad();
           };
-        document.head.appendChild(script);
+          document.head.appendChild(script);
         }
 
         tryLoad();
@@ -51,35 +53,42 @@
   }
 
   function quantizeIconCells(sourcePath) {
-    const canvas = document.createElement("canvas");
-    canvas.width = 24;
-    canvas.height = 24;
-    const ctx = canvas.getContext("2d");
-    const source = new Path2D(sourcePath);
-    const cells = [];
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = 24;
+      canvas.height = 24;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return [];
+      
+      const source = new Path2D(sourcePath);
+      const cells = [];
 
-    for (let y = 0; y < GRID; y += 1) {
-      for (let x = 0; x < GRID; x += 1) {
-        const sourceX = ((x + 0.5) / GRID) * 24;
-        const sourceY = ((y + 0.5) / GRID) * 24;
-        if (ctx.isPointInPath(source, sourceX, sourceY)) {
-          cells.push({ x, y });
+      for (let y = 0; y < GRID; y += 1) {
+        for (let x = 0; x < GRID; x += 1) {
+          const sourceX = ((x + 0.5) / GRID) * 24;
+          const sourceY = ((y + 0.5) / GRID) * 24;
+          if (ctx.isPointInPath(source, sourceX, sourceY)) {
+            cells.push({ x, y });
+          }
         }
       }
+
+      if (!cells.length) return [];
+
+      const minX = Math.min(...cells.map((cell) => cell.x));
+      const maxX = Math.max(...cells.map((cell) => cell.x));
+      const minY = Math.min(...cells.map((cell) => cell.y));
+      const maxY = Math.max(...cells.map((cell) => cell.y));
+      const width = maxX - minX + 1;
+      const height = maxY - minY + 1;
+      const offsetX = Math.round((GRID - width) / 2) - minX;
+      const offsetY = Math.round((GRID - height) / 2) - minY;
+
+      return cells.map((cell) => ({ x: cell.x + offsetX, y: cell.y + offsetY }));
+    } catch (error) {
+      console.warn("Error in quantizeIconCells:", error);
+      return [];
     }
-
-    if (!cells.length) return [];
-
-    const minX = Math.min(...cells.map((cell) => cell.x));
-    const maxX = Math.max(...cells.map((cell) => cell.x));
-    const minY = Math.min(...cells.map((cell) => cell.y));
-    const maxY = Math.max(...cells.map((cell) => cell.y));
-    const width = maxX - minX + 1;
-    const height = maxY - minY + 1;
-    const offsetX = Math.round((GRID - width) / 2) - minX;
-    const offsetY = Math.round((GRID - height) / 2) - minY;
-
-    return cells.map((cell) => ({ x: cell.x + offsetX, y: cell.y + offsetY }));
   }
 
   function drawMulticolorIcon(canvas, sourcePath) {
@@ -195,16 +204,19 @@
   }
 
   function parsePixelSquares(pathData) {
+    if (!pathData || typeof pathData !== "string") return [];
+    
     const squares = [];
-    const pattern = /M(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)h(\d+(?:\.\d+)?)v\3h-\3z/g;
+    const pattern = /M(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)h(\d+(?:\.\d+)?)v\3h-\3z/g;
     let match;
 
     while ((match = pattern.exec(pathData))) {
-      squares.push({
-        x: Number(match[1]),
-        y: Number(match[2]),
-        size: Number(match[3]),
-      });
+      const x = Number(match[1]);
+      const y = Number(match[2]);
+      const size = Number(match[3]);
+      if (!isNaN(x) && !isNaN(y) && !isNaN(size) && size > 0) {
+        squares.push({ x, y, size });
+      }
     }
 
     return squares;
@@ -220,32 +232,46 @@
       .join("");
   }
 
+  // Pre-computed color palette
+  const COLOR_PALETTE = {
+    pink: { r: 244, g: 91, b: 211 },
+    cyan: { r: 170, g: 252, b: 255 },
+    dark: { r: 17, g: 24, b: 32 },
+    base: { r: 0, g: 229, b: 212 },
+  };
+
   function parseColor(color) {
     if (!color) return null;
+    if (colorCache.has(color)) return colorCache.get(color);
 
+    let result = null;
     const rgb = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
     if (rgb) {
-      return {
+      result = {
         r: Number(rgb[1]),
         g: Number(rgb[2]),
         b: Number(rgb[3]),
       };
+    } else {
+      const hex = color.match(/^#([0-9a-f]{6})$/i);
+      if (hex) {
+        result = {
+          r: Number.parseInt(hex[1].slice(0, 2), 16),
+          g: Number.parseInt(hex[1].slice(2, 4), 16),
+          b: Number.parseInt(hex[1].slice(4, 6), 16),
+        };
+      }
     }
 
-    const hex = color.match(/^#([0-9a-f]{6})$/i);
-    if (hex) {
-      return {
-        r: Number.parseInt(hex[1].slice(0, 2), 16),
-        g: Number.parseInt(hex[1].slice(2, 4), 16),
-        b: Number.parseInt(hex[1].slice(4, 6), 16),
-      };
-    }
-
-    return null;
+    if (result) colorCache.set(color, result);
+    return result;
   }
 
   function toRgb(color) {
-    return `rgb(${Math.max(0, Math.min(255, Math.round(color.r)))}, ${Math.max(0, Math.min(255, Math.round(color.g)))}, ${Math.max(0, Math.min(255, Math.round(color.b)))})`;
+    const r = Math.max(0, Math.min(255, Math.round(color.r)));
+    const g = Math.max(0, Math.min(255, Math.round(color.g)));
+    const b = Math.max(0, Math.min(255, Math.round(color.b)));
+    return `rgb(${r}, ${g}, ${b})`;
   }
 
   function mix(color, other, amount) {
@@ -257,17 +283,22 @@
   }
 
   function pathToSquares(pathData) {
-    const pixelSquares = parsePixelSquares(pathData);
-    if (pixelSquares.length >= 4) return pixelSquares;
+    try {
+      const pixelSquares = parsePixelSquares(pathData);
+      if (pixelSquares.length >= 4) return pixelSquares;
 
-    const cells = quantizeIconCells(pathData);
-    if (!cells.length) return [];
+      const cells = quantizeIconCells(pathData);
+      if (!cells.length) return [];
 
-    return cells.map((cell) => ({
-      x: Number((cell.x * CELL).toFixed(2)),
-      y: Number((cell.y * CELL).toFixed(2)),
-      size: CELL,
-    }));
+      return cells.map((cell) => ({
+        x: Number((cell.x * CELL).toFixed(2)),
+        y: Number((cell.y * CELL).toFixed(2)),
+        size: CELL,
+      }));
+    } catch (error) {
+      console.warn("Error in pathToSquares:", error);
+      return [];
+    }
   }
 
   function scaleSquaresToViewBox(squares, size) {
@@ -296,9 +327,11 @@
     if (element.localName !== "ha-svg-icon" || !element.shadowRoot) return;
 
     const existingGroup = element.shadowRoot.querySelector("g[data-miku-colorized='true']");
-    const path = element.shadowRoot.querySelector("path:not([data-miku-layer])");
+    const path = element.shadowRoot.querySelector("path:not([data-miku-layer]):not([data-miku-source='true'])");
     const svg = element.shadowRoot.querySelector("svg");
+    
     if (!path || !svg) {
+      // Handle color updates when path is missing but group exists
       if (existingGroup) {
         const lastColor = existingGroup.dataset.mikuColor || "";
         const nextColor = window.getComputedStyle(element).color;
@@ -314,6 +347,8 @@
 
     const pathData = path.getAttribute("d") || "";
     const currentColor = window.getComputedStyle(element).color;
+    
+    // Skip if already colorized with same data
     if (
       existingGroup &&
       existingGroup.dataset.mikuSourcePath === pathData &&
@@ -371,24 +406,25 @@
       );
     }
 
+    // Compute colors once
+    let baseColor = parseColor(currentColor) || COLOR_PALETTE.base;
+    const luminance = baseColor.r * 0.2126 + baseColor.g * 0.7152 + baseColor.b * 0.0722;
+    if (luminance < 42) {
+      baseColor = COLOR_PALETTE.base;
+    }
+
+    const lowerColor = mix(baseColor, COLOR_PALETTE.dark, 0.22);
+    const bodyColor = baseColor;
+    const highlightColor = mix(baseColor, COLOR_PALETTE.cyan, 0.62);
+    const accentColor = mix(baseColor, COLOR_PALETTE.pink, 0.72);
+
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
     group.dataset.mikuColorized = "true";
     group.dataset.mikuSourcePath = pathData;
     group.dataset.mikuColor = currentColor;
-    let base = parseColor(currentColor) || { r: 0, g: 229, b: 212 };
-    const luminance = base.r * 0.2126 + base.g * 0.7152 + base.b * 0.0722;
-    if (luminance < 42) {
-      base = { r: 0, g: 229, b: 212 };
-    }
-    const pink = { r: 244, g: 91, b: 211 };
-    const cyan = { r: 170, g: 252, b: 255 };
-    const dark = { r: 17, g: 24, b: 32 };
-    const lowerColor = mix(base, dark, 0.22);
-    const bodyColor = base;
-    const highlightColor = mix(base, cyan, 0.62);
-    const accentColor = mix(base, pink, 0.72);
+
     const layers = [
-      { squares: scaledSquares, fill: toRgb(mix(base, dark, 0.72)), dx: size * 0.72, dy: size * 0.72 },
+      { squares: scaledSquares, fill: toRgb(mix(baseColor, COLOR_PALETTE.dark, 0.72)), dx: size * 0.72, dy: size * 0.72 },
       { squares: lower, fill: toRgb(lowerColor) },
       { squares: body, fill: toRgb(bodyColor) },
       { squares: highlight, fill: toRgb(highlightColor) },
@@ -407,50 +443,78 @@
 
     path.dataset.mikuSource = "true";
     path.dataset.mikuColorized = "true";
-    path.style.display = "none";
+    path.setAttribute("visibility", "hidden");
     path.after(group);
   }
 
-  function replaceIcons(root) {
+  function replaceIcons(root, processRecursive = true) {
     if (!root || !root.querySelectorAll) return;
 
-    root.querySelectorAll("ha-svg-icon").forEach(colorizeRenderedSvgIcon);
-    root.querySelectorAll("*").forEach((element) => {
-      if (element.shadowRoot) {
-        replaceIcons(element.shadowRoot);
+    // Only process ha-svg-icon elements
+    root.querySelectorAll("ha-svg-icon").forEach((element) => {
+      const existingGroup = element.shadowRoot?.querySelector("g[data-miku-colorized='true']");
+      
+      // Only re-render if no colorized group exists or if icon attribute changed
+      if (!existingGroup) {
+        colorizeRenderedSvgIcon(element);
       }
     });
+    
+    // Only recurse through shadow roots if explicitly requested (from mutation observer)
+    if (processRecursive) {
+      root.querySelectorAll("*").forEach((element) => {
+        if (element.shadowRoot) {
+          replaceIcons(element.shadowRoot, true);
+        }
+      });
+    }
   }
 
   function watchIcons() {
     const originalAttachShadow = Element.prototype.attachShadow;
+    let attachShadowPatched = false;
 
-    Element.prototype.attachShadow = function patchedAttachShadow(init) {
+    const patchAttachShadow = function (init) {
       const shadowRoot = originalAttachShadow.call(this, init);
       observeRoot(shadowRoot);
       queueMicrotask(() => replaceIcons(shadowRoot));
       return shadowRoot;
     };
 
-    const observer = new MutationObserver((mutations) => {
+    Element.prototype.attachShadow = patchAttachShadow;
+    attachShadowPatched = true;
+
+    observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        if (mutation.type === "attributes" && mutation.target instanceof Element) {
-          colorizeRenderedSvgIcon(mutation.target);
-          if (mutation.target.shadowRoot) replaceIcons(mutation.target.shadowRoot);
+        if (mutation.type === "attributes" && mutation.attributeName === "icon") {
+          if (mutation.target instanceof Element && mutation.target.localName === "ha-svg-icon") {
+            // Remove existing colorized group to force re-render on icon change
+            const existingGroup = mutation.target.shadowRoot?.querySelector("g[data-miku-colorized='true']");
+            if (existingGroup) existingGroup.remove();
+            colorizeRenderedSvgIcon(mutation.target);
+          }
         }
 
+        // Process newly added nodes
         mutation.addedNodes.forEach((node) => {
           if (!(node instanceof Element)) return;
-          colorizeRenderedSvgIcon(node);
-          replaceIcons(node);
-          if (node.shadowRoot) replaceIcons(node.shadowRoot);
+          if (node.localName === "ha-svg-icon") {
+            colorizeRenderedSvgIcon(node);
+          }
+          // Check children for ha-svg-icon elements
+          if (node.querySelectorAll) {
+            node.querySelectorAll("ha-svg-icon").forEach(colorizeRenderedSvgIcon);
+          }
+          if (node.shadowRoot) {
+            node.shadowRoot.querySelectorAll("ha-svg-icon").forEach(colorizeRenderedSvgIcon);
+          }
         });
       });
     });
 
     function observeRoot(root) {
       observer.observe(root, {
-        attributeFilter: ["icon", "d", "class", "style"],
+        attributeFilter: ["icon", "class", "style"],
         attributes: true,
         childList: true,
         subtree: true,
@@ -458,15 +522,44 @@
     }
 
     observeRoot(document.documentElement);
-    replaceIcons(document);
-    window.setInterval(() => replaceIcons(document), 1500);
+    replaceIcons(document, true);
+    
+    // Minimal polling - only for orphaned icons that appear without mutations
+    pollInterval = window.setInterval(() => {
+      document.querySelectorAll("ha-svg-icon").forEach((element) => {
+        const existingGroup = element.shadowRoot?.querySelector("g[data-miku-colorized='true']");
+        if (!existingGroup) {
+          colorizeRenderedSvgIcon(element);
+        }
+      });
+    }, 30000);
+    
+    // Add cleanup function to window for manual cleanup if needed
+    window.stopMikuIconizer = () => {
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+      if (attachShadowPatched) {
+        Element.prototype.attachShadow = originalAttachShadow;
+        attachShadowPatched = false;
+      }
+    };
   }
 
   if (AUTO_COLORIZE_RENDERED_SVG_ICONS) {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", watchIcons, { once: true });
-    } else {
-      watchIcons();
+    try {
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", watchIcons, { once: true });
+      } else {
+        watchIcons();
+      }
+    } catch (error) {
+      console.error("Failed to initialize Miku iconizer:", error);
     }
   }
 })();

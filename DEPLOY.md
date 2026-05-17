@@ -44,7 +44,7 @@ Preview the SFTP commands without uploading:
 The script uploads:
 
 - `themes/hatsune-miku.yaml` to `/config/themes/`
-- `www/hatsune-miku-background.jpg` to `/config/www/`
+- `www/hatsune-miku-background.webp` to `/config/www/`
 - `www/hatsune-miku-icons/` to `/config/www/hatsune-miku-icons/`
 - `dashboard/` to `/config/www/dashboard/`
 

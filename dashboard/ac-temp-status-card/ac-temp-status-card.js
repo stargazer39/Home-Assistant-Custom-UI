@@ -14,7 +14,7 @@ class AcTempStatusCard extends HTMLElement {
 
     this.config = {
       name: "A/C Temp",
-      icon: "miku:thermometer",
+      icon: "mdi:thermometer",
       power_entity: config.power_entity || "sensor.energy_monitor_load_power",
       power_threshold: 10,
       show_status: false,
