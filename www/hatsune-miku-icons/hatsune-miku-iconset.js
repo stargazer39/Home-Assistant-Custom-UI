@@ -269,6 +269,106 @@
     element.replaceWith(replacement);
   }
 
+  function parsePixelSquares(pathData) {
+    const squares = [];
+    const pattern = /M(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)h(\d+(?:\.\d+)?)v\3h-\3z/g;
+    let match;
+
+    while ((match = pattern.exec(pathData))) {
+      squares.push({
+        x: Number(match[1]),
+        y: Number(match[2]),
+        size: Number(match[3]),
+      });
+    }
+
+    return squares;
+  }
+
+  function makePath(squares, dx = 0, dy = 0) {
+    return squares
+      .map((square) => {
+        const x = Number((square.x + dx).toFixed(2));
+        const y = Number((square.y + dy).toFixed(2));
+        return squarePath(x, y, square.size);
+      })
+      .join("");
+  }
+
+  function colorizeRenderedSvgIcon(element) {
+    if (element.localName !== "ha-svg-icon" || !element.shadowRoot) return;
+
+    const path = element.shadowRoot.querySelector("path.primary-path:not([data-miku-colorized])");
+    const svg = element.shadowRoot.querySelector("svg");
+    if (!path || !svg) return;
+
+    const squares = parsePixelSquares(path.getAttribute("d") || "");
+    if (squares.length < 4) return;
+
+    const size = squares[0].size || CELL;
+    const keys = new Set(squares.map((square) => `${square.x},${square.y}`));
+    const xs = squares.map((square) => square.x);
+    const ys = squares.map((square) => square.y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    const width = maxX - minX + size;
+
+    const highlight = [];
+    const body = [];
+    const lower = [];
+
+    squares.forEach((square) => {
+      const topEdge = !keys.has(`${square.x},${Number((square.y - size).toFixed(2))}`);
+      const leftEdge = !keys.has(`${Number((square.x - size).toFixed(2))},${square.y}`);
+
+      if (topEdge || leftEdge) {
+        highlight.push(square);
+      } else if (square.y > minY + (maxY - minY) * 0.58) {
+        lower.push(square);
+      } else {
+        body.push(square);
+      }
+    });
+
+    const accentY = Math.max(0, minY - size);
+    const accentLeft = Math.max(0, minX - size);
+    const accentRight = Math.min(24 - size, maxX + size);
+    const accents = [
+      { x: accentLeft, y: accentY, size },
+      { x: accentRight, y: accentY, size },
+    ];
+
+    if (width > size * 4) {
+      accents.push(
+        { x: Math.max(0, accentLeft - size), y: accentY + size, size },
+        { x: Math.min(24 - size, accentRight + size), y: accentY + size, size },
+      );
+    }
+
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    const layers = [
+      { squares, fill: "#111820", dx: size, dy: size },
+      { squares: lower, fill: "#00b8aa" },
+      { squares: body, fill: "#00e5d4" },
+      { squares: highlight, fill: "#aafcff" },
+      { squares: accents, fill: "#f45bd3" },
+    ];
+
+    layers.forEach((layer) => {
+      if (!layer.squares.length) return;
+
+      const layerPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      layerPath.setAttribute("d", makePath(layer.squares, layer.dx || 0, layer.dy || 0));
+      layerPath.setAttribute("fill", layer.fill);
+      group.appendChild(layerPath);
+    });
+
+    path.dataset.mikuColorized = "true";
+    path.replaceWith(group);
+  }
+
   function replaceIconElement(element) {
     if (element.localName !== "ha-icon") return;
 
@@ -285,6 +385,7 @@
   function replaceIcons(root) {
     if (!root || !root.querySelectorAll) return;
 
+    root.querySelectorAll("ha-svg-icon").forEach(colorizeRenderedSvgIcon);
     root.querySelectorAll("ha-icon[icon^='mdi:'], ha-icon[icon^='miku:']").forEach(replaceIconElement);
     root.querySelectorAll("*").forEach((element) => {
       if (element.shadowRoot) {
@@ -338,6 +439,7 @@
         mutation.addedNodes.forEach((node) => {
           if (!(node instanceof Element)) return;
           replaceIconElement(node);
+          colorizeRenderedSvgIcon(node);
           replaceIcons(node);
           if (node.shadowRoot) replaceIcons(node.shadowRoot);
         });
