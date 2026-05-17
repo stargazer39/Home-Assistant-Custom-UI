@@ -415,7 +415,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
       show_header: true,
       show_service_buttons: true,
       show_all_keys: true,
-      show_keypad: true,
+      show_keypad: false,
       service_delay: 0.45,
       repeat_start_ms: 420,
       repeat_interval_ms: 180,
