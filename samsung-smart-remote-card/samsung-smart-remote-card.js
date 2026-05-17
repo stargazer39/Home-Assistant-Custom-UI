@@ -417,6 +417,8 @@ class SamsungSmartRemoteCard extends HTMLElement {
       show_all_keys: true,
       show_keypad: true,
       service_delay: 0.45,
+      repeat_start_ms: 420,
+      repeat_interval_ms: 180,
       ...config,
       entity: remoteEntity,
     };
@@ -441,6 +443,9 @@ class SamsungSmartRemoteCard extends HTMLElement {
     if (!this.shadowRoot || !this.config || !this._hass) {
       return;
     }
+
+    this._activeRepeatStop?.();
+    this._activeRepeatStop = undefined;
 
     if (this.shadowRoot.querySelector(".all-keys")) {
       this._allKeysOpen = this.shadowRoot.querySelector(".all-keys").open;
@@ -478,12 +483,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
       </ha-card>
     `;
 
-    this.shadowRoot.querySelectorAll("[data-command]").forEach((button) => {
-      button.addEventListener("click", (event) => {
-        event.stopPropagation();
-        this.sendCommand(button.dataset.command);
-      });
-    });
+    this.bindCommandButtons();
 
     this.shadowRoot.querySelectorAll("[data-sequence]").forEach((button) => {
       button.addEventListener("click", (event) => {
@@ -556,15 +556,15 @@ class SamsungSmartRemoteCard extends HTMLElement {
     return `
       <section class="rocker-grid">
         <div class="rocker volume">
-          ${this.renderKey("KEY_VOLUP", "Volume Up", "rocker-btn", "mdi:plus")}
+          ${this.renderKey("KEY_VOLUP", "Volume Up", "rocker-btn", "mdi:plus", true)}
           <div class="rocker-label">VOL</div>
-          ${this.renderKey("KEY_VOLDOWN", "Volume Down", "rocker-btn", "mdi:minus")}
+          ${this.renderKey("KEY_VOLDOWN", "Volume Down", "rocker-btn", "mdi:minus", true)}
         </div>
         ${this.renderIconButton("KEY_MUTE", "Mute", "mdi:volume-off", "mute")}
         <div class="rocker channel">
-          ${this.renderKey("KEY_CHUP", "Channel Up", "rocker-btn", "mdi:chevron-up")}
+          ${this.renderKey("KEY_CHUP", "Channel Up", "rocker-btn", "mdi:chevron-up", true)}
           <div class="rocker-label">CH</div>
-          ${this.renderKey("KEY_CHDOWN", "Channel Down", "rocker-btn", "mdi:chevron-down")}
+          ${this.renderKey("KEY_CHDOWN", "Channel Down", "rocker-btn", "mdi:chevron-down", true)}
         </div>
       </section>
     `;
@@ -595,10 +595,10 @@ class SamsungSmartRemoteCard extends HTMLElement {
   renderMediaCluster() {
     return `
       <section class="media-grid">
-        ${this.renderIconButton("KEY_REWIND", "Rewind", "mdi:rewind", "media")}
+        ${this.renderIconButton("KEY_REWIND", "Rewind", "mdi:rewind", "media", true)}
         ${this.renderIconButton("KEY_PLAY", "Play", "mdi:play", "media play")}
         ${this.renderIconButton("KEY_PAUSE", "Pause", "mdi:pause", "media")}
-        ${this.renderIconButton("KEY_FF", "Fast Forward", "mdi:fast-forward", "media")}
+        ${this.renderIconButton("KEY_FF", "Fast Forward", "mdi:fast-forward", "media", true)}
         ${this.renderIconButton("KEY_STOP", "Stop", "mdi:stop", "media")}
         ${this.renderIconButton("KEY_REC", "Record", "mdi:record-rec", "media rec")}
       </section>
@@ -648,9 +648,9 @@ class SamsungSmartRemoteCard extends HTMLElement {
     `;
   }
 
-  renderIconButton(command, label, icon, classes = "") {
+  renderIconButton(command, label, icon, classes = "", repeatable = false) {
     return `
-      <button class="remote-btn icon-btn ${classes}" data-command="${this.escape(command)}" title="${this.escape(label)}" aria-label="${this.escape(label)}">
+      <button class="remote-btn icon-btn ${classes}" data-command="${this.escape(command)}" ${repeatable ? "data-repeatable=\"true\"" : ""} title="${this.escape(label)}" aria-label="${this.escape(label)}">
         <ha-icon icon="${this.escape(icon)}"></ha-icon>
       </button>
     `;
@@ -662,9 +662,11 @@ class SamsungSmartRemoteCard extends HTMLElement {
     `;
   }
 
-  renderKey(command, label, classes = "", icon = "") {
+  renderKey(command, label, classes = "", icon = "", repeatable = false) {
+    const shouldRepeat = repeatable || ["KEY_UP", "KEY_DOWN", "KEY_LEFT", "KEY_RIGHT"].includes(command);
+
     return `
-      <button class="remote-btn ${classes}" data-command="${this.escape(command)}" title="${this.escape(command)}" aria-label="${this.escape(label)}">
+      <button class="remote-btn ${classes}" data-command="${this.escape(command)}" ${shouldRepeat ? "data-repeatable=\"true\"" : ""} title="${this.escape(command)}" aria-label="${this.escape(label)}">
         ${icon ? `<ha-icon icon="${this.escape(icon)}"></ha-icon>` : `<span>${this.escape(label)}</span>`}
       </button>
     `;
@@ -685,6 +687,87 @@ class SamsungSmartRemoteCard extends HTMLElement {
         <span>${this.escape(label)}</span>
       </button>
     `;
+  }
+
+  bindCommandButtons() {
+    this.shadowRoot.querySelectorAll("[data-command]").forEach((button) => {
+      if (button.dataset.repeatable === "true") {
+        this.bindRepeatingButton(button);
+        return;
+      }
+
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this.sendCommand(button.dataset.command);
+      });
+    });
+  }
+
+  bindRepeatingButton(button) {
+    let startTimer;
+    let repeatTimer;
+    let didRepeat = false;
+    let isActive = false;
+
+    const clearTimers = () => {
+      window.clearTimeout(startTimer);
+      window.clearInterval(repeatTimer);
+      startTimer = undefined;
+      repeatTimer = undefined;
+    };
+
+    const stop = (event) => {
+      event?.stopPropagation();
+
+      if (!isActive) {
+        return;
+      }
+
+      isActive = false;
+      clearTimers();
+      this._activeRepeatStop = undefined;
+
+      if (!didRepeat) {
+        this.sendCommand(button.dataset.command);
+      }
+    };
+
+    button.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) {
+        return;
+      }
+
+      event.stopPropagation();
+      didRepeat = false;
+      isActive = true;
+      clearTimers();
+      this._activeRepeatStop = clearTimers;
+      button.setPointerCapture?.(event.pointerId);
+
+      startTimer = window.setTimeout(() => {
+        didRepeat = true;
+        this.sendCommand(button.dataset.command);
+        repeatTimer = window.setInterval(() => {
+          this.sendCommand(button.dataset.command);
+        }, Number(this.config.repeat_interval_ms) || 180);
+      }, Number(this.config.repeat_start_ms) || 420);
+    });
+
+    button.addEventListener("pointerup", stop);
+    button.addEventListener("pointercancel", stop);
+    button.addEventListener("pointerleave", (event) => {
+      if (event.buttons === 1) {
+        stop(event);
+      }
+    });
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (event.detail === 0) {
+        this.sendCommand(button.dataset.command);
+      }
+    });
   }
 
   sendCommand(command, delay = 0) {

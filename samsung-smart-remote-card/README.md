@@ -35,6 +35,8 @@ grid_options:
 | `show_all_keys` | No | `true` | Show the expandable all-key drawer. |
 | `show_keypad` | No | `true` | Initial keypad visibility. The in-card hide/show state persists through Home Assistant refreshes. |
 | `service_delay` | No | `0.45` | Delay in seconds between keys for service-menu command sequences. |
+| `repeat_start_ms` | No | `420` | Press-and-hold delay before repeatable buttons start repeating. |
+| `repeat_interval_ms` | No | `180` | Interval between repeated sends while holding repeatable buttons. |
 
 ## Notes
 
@@ -43,5 +45,7 @@ The factory and service-menu buttons are intentionally red and separated from th
 The all-key drawer includes the Samsung key codes listed in the Home Assistant Samsung TV / SamsungTV Smart key-code references, grouped by function: power, inputs, numbers, channel, volume, navigation, media, color keys, menus, OSD, picture, PIP, modes, teletext, other keys, Auto Arc, panel, extended, and service keys.
 
 The SmartThings group includes the `ST_TV`, `ST_HDMI1`-`ST_HDMI4`, channel, mute, volume, and direct channel/volume preset commands described by the SamsungTV Smart docs. Those commands require SmartThings support in the backing integration.
+
+Press-and-hold repeating is enabled only where it behaves like a physical remote: D-pad directions, volume up/down, channel up/down, rewind, and fast forward. Power, service, number, menu, OK, and factory controls stay single-shot.
 
 For modern Samsung TVs, `KEY_POWER` is often the practical power toggle. `KEY_POWERON` and `KEY_POWEROFF` are included because they are part of the published key list, but support can vary.
