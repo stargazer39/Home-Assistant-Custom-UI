@@ -295,6 +295,64 @@
       .join("");
   }
 
+  function parseColor(color) {
+    if (!color) return null;
+
+    const rgb = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+    if (rgb) {
+      return {
+        r: Number(rgb[1]),
+        g: Number(rgb[2]),
+        b: Number(rgb[3]),
+      };
+    }
+
+    const hex = color.match(/^#([0-9a-f]{6})$/i);
+    if (hex) {
+      return {
+        r: Number.parseInt(hex[1].slice(0, 2), 16),
+        g: Number.parseInt(hex[1].slice(2, 4), 16),
+        b: Number.parseInt(hex[1].slice(4, 6), 16),
+      };
+    }
+
+    return null;
+  }
+
+  function toRgb(color) {
+    return `rgb(${Math.max(0, Math.min(255, Math.round(color.r)))}, ${Math.max(0, Math.min(255, Math.round(color.g)))}, ${Math.max(0, Math.min(255, Math.round(color.b)))})`;
+  }
+
+  function mix(color, other, amount) {
+    return {
+      r: color.r + (other.r - color.r) * amount,
+      g: color.g + (other.g - color.g) * amount,
+      b: color.b + (other.b - color.b) * amount,
+    };
+  }
+
+  function scaleSquaresToViewBox(squares, size) {
+    const xs = squares.map((square) => square.x);
+    const ys = squares.map((square) => square.y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs) + size;
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys) + size;
+    const width = maxX - minX;
+    const height = maxY - minY;
+    const target = 18;
+    const scale = Math.min(target / width, target / height);
+    const offsetX = (24 - width * scale) / 2;
+    const offsetY = (24 - height * scale) / 2;
+    const scaledSize = Number((size * scale).toFixed(2));
+
+    return squares.map((square) => ({
+      x: Number((offsetX + (square.x - minX) * scale).toFixed(2)),
+      y: Number((offsetY + (square.y - minY) * scale).toFixed(2)),
+      size: scaledSize,
+    }));
+  }
+
   function colorizeRenderedSvgIcon(element) {
     if (element.localName !== "ha-svg-icon" || !element.shadowRoot) return;
 
@@ -305,10 +363,12 @@
     const squares = parsePixelSquares(path.getAttribute("d") || "");
     if (squares.length < 4) return;
 
-    const size = squares[0].size || CELL;
-    const keys = new Set(squares.map((square) => `${square.x},${square.y}`));
-    const xs = squares.map((square) => square.x);
-    const ys = squares.map((square) => square.y);
+    const sourceSize = squares[0].size || CELL;
+    const scaledSquares = scaleSquaresToViewBox(squares, sourceSize);
+    const size = scaledSquares[0].size || sourceSize;
+    const keys = new Set(scaledSquares.map((square) => `${square.x},${square.y}`));
+    const xs = scaledSquares.map((square) => square.x);
+    const ys = scaledSquares.map((square) => square.y);
     const minX = Math.min(...xs);
     const maxX = Math.max(...xs);
     const minY = Math.min(...ys);
@@ -319,7 +379,7 @@
     const body = [];
     const lower = [];
 
-    squares.forEach((square) => {
+    scaledSquares.forEach((square) => {
       const topEdge = !keys.has(`${square.x},${Number((square.y - size).toFixed(2))}`);
       const leftEdge = !keys.has(`${Number((square.x - size).toFixed(2))},${square.y}`);
 
@@ -348,12 +408,24 @@
     }
 
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    let base = parseColor(window.getComputedStyle(element).color) || { r: 0, g: 229, b: 212 };
+    const luminance = base.r * 0.2126 + base.g * 0.7152 + base.b * 0.0722;
+    if (luminance < 42) {
+      base = { r: 0, g: 229, b: 212 };
+    }
+    const pink = { r: 244, g: 91, b: 211 };
+    const cyan = { r: 170, g: 252, b: 255 };
+    const dark = { r: 17, g: 24, b: 32 };
+    const lowerColor = mix(base, dark, 0.22);
+    const bodyColor = base;
+    const highlightColor = mix(base, cyan, 0.62);
+    const accentColor = mix(base, pink, 0.72);
     const layers = [
-      { squares, fill: "#111820", dx: size, dy: size },
-      { squares: lower, fill: "#00b8aa" },
-      { squares: body, fill: "#00e5d4" },
-      { squares: highlight, fill: "#aafcff" },
-      { squares: accents, fill: "#f45bd3" },
+      { squares: scaledSquares, fill: toRgb(mix(base, dark, 0.72)), dx: size * 0.72, dy: size * 0.72 },
+      { squares: lower, fill: toRgb(lowerColor) },
+      { squares: body, fill: toRgb(bodyColor) },
+      { squares: highlight, fill: toRgb(highlightColor) },
+      { squares: accents, fill: toRgb(accentColor) },
     ];
 
     layers.forEach((layer) => {
@@ -436,6 +508,12 @@
 
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
+        if (mutation.type === "attributes" && mutation.target instanceof Element) {
+          replaceIconElement(mutation.target);
+          colorizeRenderedSvgIcon(mutation.target);
+          if (mutation.target.shadowRoot) replaceIcons(mutation.target.shadowRoot);
+        }
+
         mutation.addedNodes.forEach((node) => {
           if (!(node instanceof Element)) return;
           replaceIconElement(node);
@@ -447,11 +525,17 @@
     });
 
     function observeRoot(root) {
-      observer.observe(root, { childList: true, subtree: true });
+      observer.observe(root, {
+        attributeFilter: ["icon", "d", "class", "style"],
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
     }
 
     observeRoot(document.documentElement);
     replaceIcons(document);
+    window.setInterval(() => replaceIcons(document), 1500);
   }
 
   if (AUTO_REPLACE_MDI) {
