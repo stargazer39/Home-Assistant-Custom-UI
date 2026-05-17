@@ -5,6 +5,7 @@
     "/www/hatsune-miku-icons/all-material-icons/icons-data.js",
   ];
   const AUTO_REPLACE_MDI = true;
+  const AUTO_REPLACE_HA_ICON_RENDERER = true;
   const GRID = 16;
   const CELL = 1.5;
   const OFFSET = 0;
@@ -69,7 +70,7 @@
       }
     }
 
-    if (!cells.length) return sourcePath;
+    if (!cells.length) return [];
 
     const minX = Math.min(...cells.map((cell) => cell.x));
     const maxX = Math.max(...cells.map((cell) => cell.x));
@@ -232,6 +233,42 @@
     return typeof value === "string" && value.startsWith("mdi:") ? `${ICONSET_NAME}:${value.slice(4)}` : value;
   }
 
+  function isReplaceableIcon(value) {
+    return typeof value === "string" && (value.startsWith("mdi:") || value.startsWith(`${ICONSET_NAME}:`));
+  }
+
+  function replaceHaIconRenderer(element) {
+    if (!AUTO_REPLACE_HA_ICON_RENDERER || element.localName !== "ha-icon" || element.dataset.mikuReplaced === "true") {
+      return;
+    }
+
+    const icon = toMikuIcon(element.icon || element.getAttribute("icon"));
+    if (!isReplaceableIcon(icon) || !element.parentNode) return;
+
+    const replacement = document.createElement("miku-pixel-icon");
+    const computed = window.getComputedStyle(element);
+    const width = computed.width && computed.width !== "auto" ? computed.width : "";
+    const height = computed.height && computed.height !== "auto" ? computed.height : "";
+
+    Array.from(element.attributes).forEach((attribute) => {
+      if (attribute.name !== "icon") {
+        replacement.setAttribute(attribute.name, attribute.value);
+      }
+    });
+
+    replacement.setAttribute("icon", icon);
+    replacement.dataset.mikuInjected = "true";
+
+    if (width && width !== "0px") replacement.style.width = width;
+    if (height && height !== "0px") replacement.style.height = height;
+    if (computed.margin && computed.margin !== "0px") replacement.style.margin = computed.margin;
+    replacement.style.flex = computed.flex;
+    replacement.style.alignSelf = computed.alignSelf;
+
+    element.dataset.mikuReplaced = "true";
+    element.replaceWith(replacement);
+  }
+
   function replaceIconElement(element) {
     if (element.localName !== "ha-icon") return;
 
@@ -241,12 +278,14 @@
       element.setAttribute("icon", mikuIcon);
       element.icon = mikuIcon;
     }
+
+    replaceHaIconRenderer(element);
   }
 
   function replaceIcons(root) {
     if (!root || !root.querySelectorAll) return;
 
-    root.querySelectorAll("ha-icon[icon^='mdi:']").forEach(replaceIconElement);
+    root.querySelectorAll("ha-icon[icon^='mdi:'], ha-icon[icon^='miku:']").forEach(replaceIconElement);
     root.querySelectorAll("*").forEach((element) => {
       if (element.shadowRoot) {
         replaceIcons(element.shadowRoot);
@@ -260,7 +299,11 @@
 
     Element.prototype.setAttribute = function patchedSetAttribute(name, value) {
       const nextValue = this.localName === "ha-icon" && name === "icon" ? toMikuIcon(value) : value;
-      return originalSetAttribute.call(this, name, nextValue);
+      const result = originalSetAttribute.call(this, name, nextValue);
+      if (this.localName === "ha-icon" && name === "icon") {
+        queueMicrotask(() => replaceIconElement(this));
+      }
+      return result;
     };
 
     Element.prototype.attachShadow = function patchedAttachShadow(init) {
@@ -281,6 +324,7 @@
           get: descriptor.get,
           set(value) {
             descriptor.set.call(this, toMikuIcon(value));
+            queueMicrotask(() => replaceIconElement(this));
           },
         });
         proto.__mikuIconPatched = true;

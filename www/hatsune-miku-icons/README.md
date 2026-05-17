@@ -36,7 +36,9 @@ This package registers `<miku-pixel-icon>` for custom cards:
 <miku-pixel-icon icon="miku:home"></miku-pixel-icon>
 ```
 
-The bundled dashboard cards use this element so they can show multicolor pixel icons. Built-in Home Assistant shell areas such as the sidebar still use `ha-icon`, so they can only show the single-color pixel shape.
+The bundled dashboard cards use this element so they can show multicolor pixel icons.
+
+The script also includes a frontend override that swaps rendered `ha-icon` elements with `<miku-pixel-icon>` whenever the icon uses `mdi:` or `miku:`. This is intentionally hacky because it reaches into Home Assistant's frontend DOM, but it allows many built-in cards to show multicolor pixel icons instead of Home Assistant's single-color `ha-icon` rendering. Some closed or heavily re-rendered Home Assistant internals may still fall back to single-color icons.
 
 ## Preview
 
