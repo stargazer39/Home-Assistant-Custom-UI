@@ -8,11 +8,11 @@ The remote controls are not disabled based on the TV state. The header state is 
 
 ## Install
 
-1. Copy the `samsung-smart-remote-card` folder into your Home Assistant `www` folder.
+1. Copy the `dashboard` folder into your Home Assistant `www` folder.
 2. Add it as a dashboard resource:
 
 ```yaml
-url: /local/samsung-smart-remote-card/samsung-smart-remote-card.js
+url: /local/dashboard/samsung-smart-remote-card/samsung-smart-remote-card.js
 type: module
 ```
 

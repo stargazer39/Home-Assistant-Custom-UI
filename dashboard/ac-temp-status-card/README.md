@@ -6,11 +6,11 @@ By default, the card treats the A/C as on when `sensor.energy_monitor_load_power
 
 ## Install
 
-1. Copy the `ac-temp-status-card` folder into your Home Assistant `www` folder.
+1. Copy the `dashboard` folder into your Home Assistant `www` folder.
 2. Add it as a dashboard resource:
 
 ```yaml
-url: /local/ac-temp-status-card/ac-temp-status-card.js
+url: /local/dashboard/ac-temp-status-card/ac-temp-status-card.js
 type: module
 ```
 

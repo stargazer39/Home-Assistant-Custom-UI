@@ -4,11 +4,11 @@ A lightweight Home Assistant Lovelace custom card that displays a battery sensor
 
 ## Install
 
-1. Copy the `battery-bar-card` folder into your Home Assistant `www` folder.
+1. Copy the `dashboard` folder into your Home Assistant `www` folder.
 2. Add it as a dashboard resource:
 
 ```yaml
-url: /local/battery-bar-card/battery-bar-card.js
+url: /local/dashboard/battery-bar-card/battery-bar-card.js
 type: module
 ```
 
