@@ -130,12 +130,20 @@ class AcTempStatusCard extends HTMLElement {
           box-shadow: var(--ha-card-box-shadow, none);
           color: var(--primary-text-color);
           overflow: hidden;
-          transition: background-color 180ms ease, border-color 180ms ease;
+          transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
         }
 
         ha-card.is-on {
-          background: color-mix(in srgb, var(--success-color, #43a047) 34%, var(--ha-card-background, var(--card-background-color, #1c1c1c)));
-          border-color: color-mix(in srgb, var(--success-color, #43a047) 64%, transparent);
+          --ac-active-rgb: var(--rgb-success-color, 0, 245, 168);
+          background:
+            radial-gradient(circle at 84% 18%, rgba(var(--ac-active-rgb), 0.34), transparent 32%),
+            linear-gradient(135deg, rgba(var(--ac-active-rgb), 0.30), rgba(var(--ac-active-rgb), 0.13) 46%, rgba(7, 19, 31, 0.10)),
+            var(--ha-card-background, var(--card-background-color, #1c1c1c));
+          border-color: rgba(var(--ac-active-rgb), 0.72);
+          box-shadow:
+            var(--ha-card-box-shadow, none),
+            inset 0 0 0 1px rgba(var(--ac-active-rgb), 0.14),
+            0 0 28px rgba(var(--ac-active-rgb), 0.24);
         }
 
         .card-shell {

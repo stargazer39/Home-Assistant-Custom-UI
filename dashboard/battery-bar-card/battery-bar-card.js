@@ -57,7 +57,7 @@ class BatteryBarCard extends HTMLElement {
     const name = this.config.name || stateObj.attributes.friendly_name || this.config.entity;
     const unit = stateObj.attributes.unit_of_measurement || "%";
     const stateText = Number.isFinite(rawLevel) ? `${Math.round(level)}${unit}` : stateObj.state;
-    const icon = isCharging ? "mdi:battery-charging" : this.config.icon;
+    const icon = isCharging ? "miku:battery-charging" : this.config.icon;
     const levelLabel = Number.isFinite(rawLevel) ? `${Math.round(level)} percent` : stateObj.state;
 
     this.shadowRoot.innerHTML = `
