@@ -28,7 +28,15 @@ The icon names mirror Material Design Icons names without the `mdi:` prefix.
 
 The script also auto-replaces `mdi:` icons with matching `miku:` icons at runtime so the Home Assistant sidebar and built-in shell icons pick up the pixel style.
 
-Note: Home Assistant's built-in `ha-icon` renderer paints iconsets as a single `currentColor` path. The `miku:` iconset can provide the pixel shape, but true multicolor cyan/magenta pixels are only possible in custom cards or HTML previews that render their own SVG/canvas. The theme sets normal icons to Miku cyan and active icons to Miku pink.
+Note: Home Assistant's built-in `ha-icon` renderer paints iconsets as a single `currentColor` path. The `miku:` iconset can provide the pixel shape, but true multicolor cyan/magenta pixels require a custom renderer.
+
+This package registers `<miku-pixel-icon>` for custom cards:
+
+```html
+<miku-pixel-icon icon="miku:home"></miku-pixel-icon>
+```
+
+The bundled dashboard cards use this element so they can show multicolor pixel icons. Built-in Home Assistant shell areas such as the sidebar still use `ha-icon`, so they can only show the single-color pixel shape.
 
 ## Preview
 
