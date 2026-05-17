@@ -415,6 +415,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
       show_header: true,
       show_service_buttons: true,
       show_all_keys: true,
+      show_keypad: true,
       service_delay: 0.45,
       ...config,
       entity: remoteEntity,
@@ -445,6 +446,10 @@ class SamsungSmartRemoteCard extends HTMLElement {
       this._allKeysOpen = this.shadowRoot.querySelector(".all-keys").open;
     }
 
+    if (typeof this._keypadVisible !== "boolean") {
+      this._keypadVisible = this.config.show_keypad !== false;
+    }
+
     const remote = this._hass.states[this.config.entity];
 
     if (!remote) {
@@ -463,7 +468,8 @@ class SamsungSmartRemoteCard extends HTMLElement {
             ${this.renderTopCluster()}
             ${this.renderNavigationCluster()}
             ${this.renderChannelVolumeCluster()}
-            ${this.renderNumberPad()}
+            ${this.renderKeypadToggle()}
+            ${this._keypadVisible ? this.renderNumberPad() : ""}
             ${this.renderMediaCluster()}
             ${this.config.show_service_buttons ? this.renderServiceCluster() : ""}
           </div>
@@ -490,6 +496,15 @@ class SamsungSmartRemoteCard extends HTMLElement {
     if (allKeys) {
       allKeys.addEventListener("toggle", () => {
         this._allKeysOpen = allKeys.open;
+      });
+    }
+
+    const keypadToggle = this.shadowRoot.querySelector("[data-toggle-keypad]");
+    if (keypadToggle) {
+      keypadToggle.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this._keypadVisible = !this._keypadVisible;
+        this.render();
       });
     }
   }
@@ -552,6 +567,15 @@ class SamsungSmartRemoteCard extends HTMLElement {
           ${this.renderKey("KEY_CHDOWN", "Channel Down", "rocker-btn", "mdi:chevron-down")}
         </div>
       </section>
+    `;
+  }
+
+  renderKeypadToggle() {
+    return `
+      <button class="keypad-toggle" data-toggle-keypad aria-expanded="${this._keypadVisible ? "true" : "false"}" aria-label="${this._keypadVisible ? "Hide keypad" : "Show keypad"}">
+        <span>${this._keypadVisible ? "Hide keypad" : "Show keypad"}</span>
+        <ha-icon icon="${this._keypadVisible ? "mdi:chevron-up" : "mdi:dialpad"}"></ha-icon>
+      </button>
     `;
   }
 
@@ -935,6 +959,44 @@ class SamsungSmartRemoteCard extends HTMLElement {
           background: linear-gradient(180deg, #6c465c, #492b3b);
           height: 58px;
           min-height: 58px;
+        }
+
+        .keypad-toggle {
+          -webkit-tap-highlight-color: transparent;
+          align-items: center;
+          appearance: none;
+          background: linear-gradient(180deg, color-mix(in srgb, var(--primary-color, #03a9f4) 28%, #343940), #20242a);
+          border: 1px solid color-mix(in srgb, var(--primary-color, #03a9f4) 38%, transparent);
+          border-radius: 999px;
+          box-sizing: border-box;
+          color: #f7f9fb;
+          cursor: pointer;
+          display: inline-flex;
+          font: inherit;
+          font-size: 12px;
+          font-weight: 900;
+          gap: 8px;
+          justify-content: center;
+          letter-spacing: 0;
+          min-height: 36px;
+          padding: 0 14px;
+          text-transform: uppercase;
+          user-select: none;
+          width: 100%;
+        }
+
+        .keypad-toggle ha-icon {
+          height: 18px;
+          width: 18px;
+        }
+
+        .keypad-toggle:active {
+          transform: translateY(1px);
+        }
+
+        .keypad-toggle:focus-visible {
+          outline: 2px solid var(--primary-color);
+          outline-offset: 2px;
         }
 
         .number-grid {

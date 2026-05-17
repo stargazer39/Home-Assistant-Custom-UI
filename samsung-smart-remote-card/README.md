@@ -33,6 +33,7 @@ grid_options:
 | `show_header` | No | `true` | Show the card title and remote state. |
 | `show_service_buttons` | No | `true` | Show service keys such as `KEY_FACTORY`, `KEY_3SPEED`, and service-menu sequences. |
 | `show_all_keys` | No | `true` | Show the expandable all-key drawer. |
+| `show_keypad` | No | `true` | Initial keypad visibility. The in-card hide/show state persists through Home Assistant refreshes. |
 | `service_delay` | No | `0.45` | Delay in seconds between keys for service-menu command sequences. |
 
 ## Notes
