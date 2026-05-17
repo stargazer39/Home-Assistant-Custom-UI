@@ -9,6 +9,7 @@
   const GRID = 16;
   const CELL = 1.5;
   const OFFSET = 0;
+  const ICON_TARGET_SIZE = 22.5;
   const cache = new Map();
 
   let iconDataPromise;
@@ -89,11 +90,17 @@
 
     if (!cells.length) return sourcePath;
 
-    return cells
+    const rawSquares = cells.map((cell) => ({
+      x: Number((cell.x * CELL).toFixed(2)),
+      y: Number((cell.y * CELL).toFixed(2)),
+      size: CELL,
+    }));
+
+    return scaleSquaresToViewBox(rawSquares, CELL)
       .map((cell) => {
-        const x = OFFSET + cell.x * CELL;
-        const y = OFFSET + cell.y * CELL;
-        return squarePath(Number(x.toFixed(2)), Number(y.toFixed(2)), CELL);
+        const x = OFFSET + cell.x;
+        const y = OFFSET + cell.y;
+        return squarePath(Number(x.toFixed(2)), Number(y.toFixed(2)), cell.size);
       })
       .join("");
   }
@@ -354,7 +361,7 @@
     const maxY = Math.max(...ys) + size;
     const width = maxX - minX;
     const height = maxY - minY;
-    const target = 21;
+    const target = ICON_TARGET_SIZE;
     const scale = Math.min(target / width, target / height);
     const offsetX = (24 - width * scale) / 2;
     const offsetY = (24 - height * scale) / 2;
