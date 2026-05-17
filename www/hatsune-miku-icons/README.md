@@ -15,16 +15,17 @@ frontend:
 
 Restart Home Assistant after changing `configuration.yaml`, then hard-refresh the browser or clear the frontend cache.
 
-The iconset registers the `miku:` prefix, so you can use it anywhere Home Assistant accepts an icon:
+The iconset registers a multicolor renderer for custom cards and a frontend patch for Home Assistant's rendered SVG icons.
+For ordinary Home Assistant cards, keep using normal `mdi:` icon names and let Home Assistant render them first:
 
 ```yaml
-icon: miku:home
-icon: miku:lightbulb
-icon: miku:battery
-icon: miku:fan
+icon: mdi:home
+icon: mdi:lightbulb
+icon: mdi:battery
+icon: mdi:fan
 ```
 
-The icon names mirror Material Design Icons names without the `mdi:` prefix.
+The frontend script then pixelizes and colorizes the rendered SVG path at runtime. This avoids size mismatches between predefined `miku:` icons and realtime-converted icons.
 
 The script also auto-replaces `mdi:` icons with matching `miku:` icons at runtime so the Home Assistant sidebar and built-in shell icons pick up the pixel style.
 
@@ -38,7 +39,7 @@ This package registers `<miku-pixel-icon>` for custom cards:
 
 The bundled dashboard cards use this element so they can show multicolor pixel icons.
 
-The script also includes a frontend override that swaps rendered `ha-icon` elements with `<miku-pixel-icon>` whenever the icon uses `mdi:` or `miku:`. This is intentionally hacky because it reaches into Home Assistant's frontend DOM, but it allows many built-in cards to show multicolor pixel icons instead of Home Assistant's single-color `ha-icon` rendering. Some closed or heavily re-rendered Home Assistant internals may still fall back to single-color icons.
+The script intentionally reaches into Home Assistant's rendered frontend DOM and replaces SVG paths with layered pixel-color paths. Some closed or heavily re-rendered Home Assistant internals may still fall back to normal icons.
 
 ## Preview
 

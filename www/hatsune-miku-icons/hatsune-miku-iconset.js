@@ -4,14 +4,11 @@
     "/local/hatsune-miku-icons/all-material-icons/icons-data.js",
     "/www/hatsune-miku-icons/all-material-icons/icons-data.js",
   ];
-  const AUTO_REPLACE_MDI = true;
-  const AUTO_REPLACE_HA_ICON_RENDERER = true;
+  const AUTO_COLORIZE_RENDERED_SVG_ICONS = true;
   const GRID = 16;
   const CELL = 1.5;
   const OFFSET = 0;
   const ICON_TARGET_SIZE = 22.5;
-  const cache = new Map();
-
   let iconDataPromise;
 
   function loadIconData() {
@@ -85,26 +82,6 @@
     return cells.map((cell) => ({ x: cell.x + offsetX, y: cell.y + offsetY }));
   }
 
-  function toPixelPath(sourcePath) {
-    const cells = quantizeIconCells(sourcePath);
-
-    if (!cells.length) return sourcePath;
-
-    const rawSquares = cells.map((cell) => ({
-      x: Number((cell.x * CELL).toFixed(2)),
-      y: Number((cell.y * CELL).toFixed(2)),
-      size: CELL,
-    }));
-
-    return scaleSquaresToViewBox(rawSquares, CELL)
-      .map((cell) => {
-        const x = OFFSET + cell.x;
-        const y = OFFSET + cell.y;
-        return squarePath(Number(x.toFixed(2)), Number(y.toFixed(2)), cell.size);
-      })
-      .join("");
-  }
-
   function drawMulticolorIcon(canvas, sourcePath) {
     const ctx = canvas.getContext("2d");
     const cells = quantizeIconCells(sourcePath);
@@ -151,25 +128,6 @@
       ctx.fillRect(Math.min(GRID - 1, accentRight + 1) * cellSize, (accentY + 1) * cellSize, cellSize, cellSize * 2);
     }
   }
-
-  async function getIcon(name) {
-    if (cache.has(name)) return cache.get(name);
-
-    const icons = await loadIconData();
-    const icon = icons.find((candidate) => candidate.name === name);
-    if (!icon) return undefined;
-
-    const result = {
-      path: toPixelPath(icon.path),
-      viewBox: "0 0 24 24",
-    };
-
-    cache.set(name, result);
-    return result;
-  }
-
-  window.customIconsets = window.customIconsets || {};
-  window.customIconsets[ICONSET_NAME] = getIcon;
 
   class MikuPixelIcon extends HTMLElement {
     static get observedAttributes() {
@@ -234,46 +192,6 @@
 
   if (!customElements.get("miku-pixel-icon")) {
     customElements.define("miku-pixel-icon", MikuPixelIcon);
-  }
-
-  function toMikuIcon(value) {
-    return typeof value === "string" && value.startsWith("mdi:") ? `${ICONSET_NAME}:${value.slice(4)}` : value;
-  }
-
-  function isReplaceableIcon(value) {
-    return typeof value === "string" && (value.startsWith("mdi:") || value.startsWith(`${ICONSET_NAME}:`));
-  }
-
-  function replaceHaIconRenderer(element) {
-    if (!AUTO_REPLACE_HA_ICON_RENDERER || element.localName !== "ha-icon" || element.dataset.mikuReplaced === "true") {
-      return;
-    }
-
-    const icon = toMikuIcon(element.icon || element.getAttribute("icon"));
-    if (!isReplaceableIcon(icon) || !element.parentNode) return;
-
-    const replacement = document.createElement("miku-pixel-icon");
-    const computed = window.getComputedStyle(element);
-    const width = computed.width && computed.width !== "auto" ? computed.width : "";
-    const height = computed.height && computed.height !== "auto" ? computed.height : "";
-
-    Array.from(element.attributes).forEach((attribute) => {
-      if (attribute.name !== "icon") {
-        replacement.setAttribute(attribute.name, attribute.value);
-      }
-    });
-
-    replacement.setAttribute("icon", icon);
-    replacement.dataset.mikuInjected = "true";
-
-    if (width && width !== "0px") replacement.style.width = width;
-    if (height && height !== "0px") replacement.style.height = height;
-    if (computed.margin && computed.margin !== "0px") replacement.style.margin = computed.margin;
-    replacement.style.flex = computed.flex;
-    replacement.style.alignSelf = computed.alignSelf;
-
-    element.dataset.mikuReplaced = "true";
-    element.replaceWith(replacement);
   }
 
   function parsePixelSquares(pathData) {
@@ -377,7 +295,7 @@
   function colorizeRenderedSvgIcon(element) {
     if (element.localName !== "ha-svg-icon" || !element.shadowRoot) return;
 
-    const path = element.shadowRoot.querySelector("path.primary-path:not([data-miku-colorized]), path:not([data-miku-colorized])");
+    const path = element.shadowRoot.querySelector("path:not([data-miku-colorized])");
     const svg = element.shadowRoot.querySelector("svg");
     if (!path || !svg) return;
 
@@ -462,24 +380,10 @@
     path.replaceWith(group);
   }
 
-  function replaceIconElement(element) {
-    if (element.localName !== "ha-icon") return;
-
-    const icon = element.icon || element.getAttribute("icon");
-    const mikuIcon = toMikuIcon(icon);
-    if (mikuIcon !== icon) {
-      element.setAttribute("icon", mikuIcon);
-      element.icon = mikuIcon;
-    }
-
-    replaceHaIconRenderer(element);
-  }
-
   function replaceIcons(root) {
     if (!root || !root.querySelectorAll) return;
 
     root.querySelectorAll("ha-svg-icon").forEach(colorizeRenderedSvgIcon);
-    root.querySelectorAll("ha-icon[icon^='mdi:'], ha-icon[icon^='miku:']").forEach(replaceIconElement);
     root.querySelectorAll("*").forEach((element) => {
       if (element.shadowRoot) {
         replaceIcons(element.shadowRoot);
@@ -488,17 +392,7 @@
   }
 
   function watchIcons() {
-    const originalSetAttribute = Element.prototype.setAttribute;
     const originalAttachShadow = Element.prototype.attachShadow;
-
-    Element.prototype.setAttribute = function patchedSetAttribute(name, value) {
-      const nextValue = this.localName === "ha-icon" && name === "icon" ? toMikuIcon(value) : value;
-      const result = originalSetAttribute.call(this, name, nextValue);
-      if (this.localName === "ha-icon" && name === "icon") {
-        queueMicrotask(() => replaceIconElement(this));
-      }
-      return result;
-    };
 
     Element.prototype.attachShadow = function patchedAttachShadow(init) {
       const shadowRoot = originalAttachShadow.call(this, init);
@@ -507,37 +401,15 @@
       return shadowRoot;
     };
 
-    customElements.whenDefined("ha-icon").then(() => {
-      const proto = customElements.get("ha-icon").prototype;
-      const descriptor = Object.getOwnPropertyDescriptor(proto, "icon");
-
-      if (descriptor?.set && !proto.__mikuIconPatched) {
-        Object.defineProperty(proto, "icon", {
-          configurable: true,
-          enumerable: descriptor.enumerable,
-          get: descriptor.get,
-          set(value) {
-            descriptor.set.call(this, toMikuIcon(value));
-            queueMicrotask(() => replaceIconElement(this));
-          },
-        });
-        proto.__mikuIconPatched = true;
-      }
-
-      replaceIcons(document);
-    });
-
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === "attributes" && mutation.target instanceof Element) {
-          replaceIconElement(mutation.target);
           colorizeRenderedSvgIcon(mutation.target);
           if (mutation.target.shadowRoot) replaceIcons(mutation.target.shadowRoot);
         }
 
         mutation.addedNodes.forEach((node) => {
           if (!(node instanceof Element)) return;
-          replaceIconElement(node);
           colorizeRenderedSvgIcon(node);
           replaceIcons(node);
           if (node.shadowRoot) replaceIcons(node.shadowRoot);
@@ -559,7 +431,7 @@
     window.setInterval(() => replaceIcons(document), 1500);
   }
 
-  if (AUTO_REPLACE_MDI) {
+  if (AUTO_COLORIZE_RENDERED_SVG_ICONS) {
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", watchIcons, { once: true });
     } else {
