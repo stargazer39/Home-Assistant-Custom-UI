@@ -975,19 +975,27 @@ class SamsungSmartRemoteCard extends HTMLElement {
           font: inherit;
           font-size: 12px;
           font-weight: 900;
-          gap: 8px;
+          gap: 12px;
           justify-content: center;
           letter-spacing: 0;
           min-height: 36px;
-          padding: 0 14px;
+          padding: 5px 16px;
           text-transform: uppercase;
           user-select: none;
           width: 100%;
         }
 
         .keypad-toggle ha-icon {
-          height: 18px;
-          width: 18px;
+          align-items: center;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 999px;
+          box-sizing: border-box;
+          display: inline-flex;
+          flex: 0 0 auto;
+          height: 30px;
+          justify-content: center;
+          padding: 5px;
+          width: 30px;
         }
 
         .keypad-toggle:active {
