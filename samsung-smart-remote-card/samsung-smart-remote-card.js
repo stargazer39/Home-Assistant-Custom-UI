@@ -516,15 +516,17 @@ class SamsungSmartRemoteCard extends HTMLElement {
   }
 
   renderHeader(name, state) {
+    const stateText = state || "unknown";
+
     return `
       <div class="remote-header">
         <div>
           <div class="eyebrow">Samsung OLED S90F</div>
           <div class="title">${this.escape(name)}</div>
         </div>
-        <div class="state-pill ${state === "on" ? "is-on" : ""}">
+        <div class="state-pill">
           <span></span>
-          ${this.escape(state)}
+          ${this.escape(stateText)}
         </div>
       </div>
     `;
@@ -878,15 +880,11 @@ class SamsungSmartRemoteCard extends HTMLElement {
         }
 
         .state-pill span {
-          background: var(--disabled-text-color, #7d838b);
+          background: var(--success-color, #43a047);
           border-radius: 999px;
           flex: 0 0 auto;
           height: 8px;
           width: 8px;
-        }
-
-        .state-pill.is-on span {
-          background: var(--success-color, #43a047);
           box-shadow: 0 0 12px color-mix(in srgb, var(--success-color, #43a047) 70%, transparent);
         }
 

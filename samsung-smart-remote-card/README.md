@@ -4,6 +4,8 @@ A Home Assistant Lovelace custom card for Samsung Smart TV remotes. It is shaped
 
 The card sends commands with Home Assistant's `remote.send_command` service. It is intended for Samsung OLED S90F / modern Tizen TVs, but Samsung support can vary by model, firmware, country, source, and whether the TV accepts a key over WebSocket at that moment.
 
+The remote controls are not disabled based on the TV state. The header state is informational only, so commands can still be sent while Home Assistant reports the TV as off.
+
 ## Install
 
 1. Copy the `samsung-smart-remote-card` folder into your Home Assistant `www` folder.
