@@ -432,6 +432,12 @@ class SamsungSmartRemoteCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+
+    if (this._isRepeatingKey) {
+      this._needsRenderAfterRepeat = true;
+      return;
+    }
+
     this.render();
   }
 
@@ -724,11 +730,17 @@ class SamsungSmartRemoteCard extends HTMLElement {
       }
 
       isActive = false;
+      this._isRepeatingKey = false;
       clearTimers();
       this._activeRepeatStop = undefined;
 
       if (!didRepeat) {
         this.sendCommand(button.dataset.command);
+      }
+
+      if (this._needsRenderAfterRepeat) {
+        this._needsRenderAfterRepeat = false;
+        this.render();
       }
     };
 
@@ -740,6 +752,8 @@ class SamsungSmartRemoteCard extends HTMLElement {
       event.stopPropagation();
       didRepeat = false;
       isActive = true;
+      this._isRepeatingKey = true;
+      this._needsRenderAfterRepeat = false;
       clearTimers();
       this._activeRepeatStop = clearTimers;
       button.setPointerCapture?.(event.pointerId);
