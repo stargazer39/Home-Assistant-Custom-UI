@@ -331,6 +331,20 @@
     };
   }
 
+  function pathToSquares(pathData) {
+    const pixelSquares = parsePixelSquares(pathData);
+    if (pixelSquares.length >= 4) return pixelSquares;
+
+    const cells = quantizeIconCells(pathData);
+    if (!cells.length) return [];
+
+    return cells.map((cell) => ({
+      x: Number((cell.x * CELL).toFixed(2)),
+      y: Number((cell.y * CELL).toFixed(2)),
+      size: CELL,
+    }));
+  }
+
   function scaleSquaresToViewBox(squares, size) {
     const xs = squares.map((square) => square.x);
     const ys = squares.map((square) => square.y);
@@ -340,7 +354,7 @@
     const maxY = Math.max(...ys) + size;
     const width = maxX - minX;
     const height = maxY - minY;
-    const target = 18;
+    const target = 21;
     const scale = Math.min(target / width, target / height);
     const offsetX = (24 - width * scale) / 2;
     const offsetY = (24 - height * scale) / 2;
@@ -356,11 +370,11 @@
   function colorizeRenderedSvgIcon(element) {
     if (element.localName !== "ha-svg-icon" || !element.shadowRoot) return;
 
-    const path = element.shadowRoot.querySelector("path.primary-path:not([data-miku-colorized])");
+    const path = element.shadowRoot.querySelector("path.primary-path:not([data-miku-colorized]), path:not([data-miku-colorized])");
     const svg = element.shadowRoot.querySelector("svg");
     if (!path || !svg) return;
 
-    const squares = parsePixelSquares(path.getAttribute("d") || "");
+    const squares = pathToSquares(path.getAttribute("d") || "");
     if (squares.length < 4) return;
 
     const sourceSize = squares[0].size || CELL;

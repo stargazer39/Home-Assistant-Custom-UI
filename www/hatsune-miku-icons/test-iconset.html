@@ -11,6 +11,7 @@
   <miku-pixel-icon icon="miku:home" style="width:64px;height:64px"></miku-pixel-icon>
   <miku-pixel-icon icon="miku:cog" style="width:64px;height:64px"></miku-pixel-icon>
   <ha-svg-icon></ha-svg-icon>
+  <ha-svg-icon-normal></ha-svg-icon-normal>
   <script src="/www/hatsune-miku-icons/hatsune-miku-iconset.js"></script>
   <script>
     customElements.define("ha-svg-icon", class extends HTMLElement {
@@ -20,6 +21,18 @@
         this.shadowRoot.innerHTML = `
           <svg viewBox="0 0 24 24" width="64" height="64">
             <path class="primary-path" d="M6 6h1.5v1.5h-1.5zM7.5 6h1.5v1.5h-1.5zM9 6h1.5v1.5h-1.5zM6 7.5h1.5v1.5h-1.5zM7.5 7.5h1.5v1.5h-1.5zM9 7.5h1.5v1.5h-1.5zM7.5 9h1.5v1.5h-1.5z"></path>
+          </svg>`;
+      }
+    });
+  </script>
+  <script>
+    customElements.define("ha-svg-icon-normal", class extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({ mode: "open" });
+        this.shadowRoot.innerHTML = `
+          <svg viewBox="0 0 24 24" width="64" height="64">
+            <path class="primary-path" d="M12 2A10 10 0 0 0 2 12A10 10 0 0 0 12 22A10 10 0 0 0 22 12A10 10 0 0 0 12 2M7 10H17V12H7V10M7 14H14V16H7V14Z"></path>
           </svg>`;
       }
     });
