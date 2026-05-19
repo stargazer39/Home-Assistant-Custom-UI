@@ -70,7 +70,7 @@ class AcTempStatusCard extends HTMLElement {
         <button class="card-shell" aria-label="${this.escape(name)} ${this.escape(temp)} ${this.escape(unit)} ${this.escape(stateLabel)}">
           <div class="header-row">
             <div class="name">${this.escape(name)}</div>
-            <miku-pixel-icon icon="${this.escape(this.config.icon)}"></miku-pixel-icon>
+            <ha-icon icon="${this.escape(this.config.icon)}"></ha-icon>
           </div>
           <div class="value-row">
             <span class="temperature">${this.escape(temp)}</span>
@@ -183,8 +183,7 @@ class AcTempStatusCard extends HTMLElement {
           white-space: nowrap;
         }
 
-        miku-pixel-icon {
-          color: var(--state-climate-cool-color, var(--primary-color));
+        ha-icon {
           flex: 0 0 auto;
           height: 24px;
           width: 24px;

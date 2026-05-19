@@ -582,7 +582,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
     return `
       <button class="keypad-toggle" data-toggle-keypad aria-expanded="${this._keypadVisible ? "true" : "false"}" aria-label="${this._keypadVisible ? "Hide keypad" : "Show keypad"}">
         <span>${this._keypadVisible ? "Hide keypad" : "Show keypad"}</span>
-        <miku-pixel-icon icon="${this._keypadVisible ? "mdi:chevron-up" : "mdi:dialpad"}"></miku-pixel-icon>
+        <ha-icon icon="${this._keypadVisible ? "mdi:chevron-up" : "mdi:dialpad"}"></ha-icon>
       </button>
     `;
   }
@@ -623,7 +623,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
     return `
       <section class="service-panel">
         <div class="service-title">
-          <miku-pixel-icon icon="mdi:tools"></miku-pixel-icon>
+          <ha-icon icon="mdi:tools"></ha-icon>
           Service
         </div>
         <div class="service-grid">
@@ -640,7 +640,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
       <details class="all-keys" ${this._allKeysOpen ? "open" : ""}>
         <summary>
           <span>All Samsung key codes</span>
-          <miku-pixel-icon icon="mdi:chevron-down"></miku-pixel-icon>
+          <ha-icon icon="mdi:chevron-down"></ha-icon>
         </summary>
         <div class="group-stack">
           ${SAMSUNG_S90F_REMOTE_GROUPS.map((group) => `
@@ -659,7 +659,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
   renderIconButton(command, label, icon, classes = "", repeatable = false) {
     return `
       <button class="remote-btn icon-btn ${classes}" data-command="${this.escape(command)}" ${repeatable ? "data-repeatable=\"true\"" : ""} title="${this.escape(label)}" aria-label="${this.escape(label)}">
-        <miku-pixel-icon icon="${this.escape(icon)}"></miku-pixel-icon>
+        <ha-icon icon="${this.escape(icon)}"></ha-icon>
       </button>
     `;
   }
@@ -675,7 +675,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
 
     return `
       <button class="remote-btn ${classes}" data-command="${this.escape(command)}" ${shouldRepeat ? "data-repeatable=\"true\"" : ""} title="${this.escape(command)}" aria-label="${this.escape(label)}">
-        ${icon ? `<miku-pixel-icon icon="${this.escape(icon)}"></miku-pixel-icon>` : `<span>${this.escape(label)}</span>`}
+        ${icon ? `<ha-icon icon="${this.escape(icon)}"></ha-icon>` : `<span>${this.escape(label)}</span>`}
       </button>
     `;
   }
@@ -952,7 +952,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
           outline-offset: 2px;
         }
 
-        .remote-btn miku-pixel-icon {
+        .remote-btn ha-icon {
           height: 21px;
           width: 21px;
         }
@@ -1081,7 +1081,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
           width: 100%;
         }
 
-        .keypad-toggle miku-pixel-icon {
+        .keypad-toggle ha-icon {
           align-items: center;
           background: rgba(255, 255, 255, 0.1);
           border-radius: 999px;
@@ -1170,7 +1170,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
           text-transform: uppercase;
         }
 
-        .service-title miku-pixel-icon {
+        .service-title ha-icon {
           height: 16px;
           width: 16px;
         }
@@ -1216,7 +1216,7 @@ class SamsungSmartRemoteCard extends HTMLElement {
           display: none;
         }
 
-        details[open] summary miku-pixel-icon {
+        details[open] summary ha-icon {
           transform: rotate(180deg);
         }
 

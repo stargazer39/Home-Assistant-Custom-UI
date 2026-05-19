@@ -66,35 +66,31 @@ if [[ -n "$user_name" ]]; then
   remote="${user_name}@${host_name}"
 fi
 remote_config="${remote_config_path%/}"
-batch_file="$(mktemp)"
-
-cleanup() {
-  rm -f "$batch_file"
-}
-trap cleanup EXIT
-
-cat > "$batch_file" <<SFTP
-lcd "$repo_root"
--mkdir "$remote_config/themes"
--mkdir "$remote_config/www"
--mkdir "$remote_config/www/hatsune-miku-icons"
-put "themes/hatsune-miku.yaml" "$remote_config/themes/hatsune-miku.yaml"
-put "www/hatsune-miku-background.webp" "$remote_config/www/hatsune-miku-background.webp"
-put -r "www/hatsune-miku-icons" "$remote_config/www/"
-put -r "dashboard/*" "$remote_config/www/dashboard/"
-bye
-SFTP
 
 if [[ "$dry_run" == "true" ]]; then
-  echo "SFTP target: $remote"
+  echo "SCP target: $remote"
   echo "Remote Home Assistant config path: $remote_config"
+  echo "Port: $port"
   echo
-  cat "$batch_file"
+  echo "Will execute:"
+  echo "  ssh -p $port $remote mkdir -p $remote_config/themes $remote_config/www $remote_config/www/dashboard"
+  echo "  scp -P $port $repo_root/themes/hatsune-miku.yaml $remote:$remote_config/themes/"
+  echo "  scp -P $port $repo_root/www/hatsune-miku-background.webp $remote:$remote_config/www/"
+  echo "  scp -P $port -r $repo_root/www/hatsune-miku-icons $remote:$remote_config/www/"
+  echo "  scp -P $port -r $repo_root/dashboard/* $remote:$remote_config/www/dashboard/"
   exit 0
 fi
 
 echo "Deploying Home Assistant custom UI files to ${remote}:${remote_config} ..."
-sftp -P "$port" -b "$batch_file" "$remote"
+
+
+# Deploy files
+scp -P "$port" "$repo_root/themes/hatsune-miku.yaml" "$remote:$remote_config/themes/"
+scp -P "$port" "$repo_root/www/hatsune-miku-background.webp" "$remote:$remote_config/www/"
+scp -P "$port" -r "$repo_root/www/hatsune-miku-icons" "$remote:$remote_config/www/"
+scp -P "$port" -r "$repo_root/dashboard/ac-temp-status-card" "$remote:$remote_config/www"
+scp -P "$port" -r "$repo_root/dashboard/battery-bar-card" "$remote:$remote_config/www"
+scp -P "$port" -r "$repo_root/dashboard/samsung-smart-remote-card" "$remote:$remote_config/www"
 echo
 echo "Deploy complete."
 echo "Restart Home Assistant or reload themes/resources if needed."

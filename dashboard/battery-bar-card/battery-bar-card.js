@@ -69,7 +69,7 @@ class BatteryBarCard extends HTMLElement {
               <div class="fill ${colorClass}" style="width: ${level}%;"></div>
               <div class="bar-content">
                 <div class="title">
-                  ${this.config.show_icon ? `<miku-pixel-icon icon="${this.escape(icon)}"></miku-pixel-icon>` : ""}
+                  ${this.config.show_icon ? `<ha-icon icon="${this.escape(icon)}"></ha-icon>` : ""}
                   <span>${this.escape(name)}</span>
                 </div>
                 ${this.config.show_percentage ? `<span class="state">${this.escape(stateText)}</span>` : ""}
@@ -240,7 +240,7 @@ class BatteryBarCard extends HTMLElement {
           white-space: nowrap;
         }
 
-        miku-pixel-icon {
+        ha-icon {
           color: currentColor;
           flex: 0 0 auto;
           height: 22px;
